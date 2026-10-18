@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bettercabanatuan-sumbong",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "bettercabanatuan-sumbong"
+    }
+  ],
+  "observability": { "enabled": true },
+  // Public, non-secret settings. Secrets (SUPABASE_SECRET_KEY, TURNSTILE_SECRET_KEY,
+  // HASH_SALT, RESEND_API_KEY) are set with `wrangler secret put`.
+  "vars": {
+    "EMAIL_FROM": "BetterCabanatuan Sumbong <sumbong@bettercabanatuan.org>"
+  }
+}

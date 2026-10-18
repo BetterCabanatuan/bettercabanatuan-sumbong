@@ -1,0 +1,192 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * BetterCabanatuan theme for shadcn/ui, matching bettercabanatuan.org:
+ * government blue (#0052BC / navy #002E6E), the flag-red stripe, IBM Plex Sans.
+ * Sun gold is reserved for "Ako rin" (Me Too); flag red for hazards and errors.
+ */
+:root {
+  --background: #f5f7fa;
+  --foreground: #14213d;
+  --card: #ffffff;
+  --card-foreground: #14213d;
+  --popover: #ffffff;
+  --popover-foreground: #14213d;
+  --primary: #0052bc;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eef4;
+  --secondary-foreground: #14213d;
+  --muted: #eef2f7;
+  --muted-foreground: #536176;
+  --accent: #e8f0fc;
+  --accent-foreground: #002e6e;
+  --destructive: #c8102e;
+  --border: #dde3ec;
+  --input: #c5cfdc;
+  --ring: #0052bc;
+  --radius: 0.75rem;
+
+  --navy: #002e6e;
+  --navy-foreground: #ffffff;
+  --sun: #fcd116;
+  --sun-foreground: #14213d;
+  --flag: #c8102e;
+
+  --status-review: #eef0f3;
+  --status-review-foreground: #4a5363;
+  --status-published: #fff4e5;
+  --status-published-foreground: #9a4a00;
+  --status-forwarded: #e8f0fc;
+  --status-forwarded-foreground: #0046a0;
+  --status-resolved: #e7f6ee;
+  --status-resolved-foreground: #0b6b3a;
+  --status-reopened: #f1ecfb;
+  --status-reopened-foreground: #5b2ea6;
+  --status-rejected: #fdecee;
+  --status-rejected-foreground: #a50e26;
+
+  --chart-1: #0052bc;
+  --chart-2: #fcd116;
+  --chart-3: #0b6b3a;
+  --chart-4: #9a4a00;
+  --chart-5: #5b2ea6;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #14213d;
+  --sidebar-primary: #0052bc;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8f0fc;
+  --sidebar-accent-foreground: #002e6e;
+  --sidebar-border: #dde3ec;
+  --sidebar-ring: #0052bc;
+}
+
+.dark {
+  --background: #0b1424;
+  --foreground: #e8edf5;
+  --card: #111d33;
+  --card-foreground: #e8edf5;
+  --popover: #111d33;
+  --popover-foreground: #e8edf5;
+  --primary: #5b9dff;
+  --primary-foreground: #08152b;
+  --secondary: #1b2a44;
+  --secondary-foreground: #e8edf5;
+  --muted: #1b2a44;
+  --muted-foreground: #a3b1c6;
+  --accent: #1b2a44;
+  --accent-foreground: #e8edf5;
+  --destructive: #ff6b7f;
+  --border: #24344f;
+  --input: #2d3f5e;
+  --ring: #5b9dff;
+  --navy: #e8edf5;
+  --navy-foreground: #0b1424;
+  --sidebar: #111d33;
+  --sidebar-foreground: #e8edf5;
+  --sidebar-primary: #5b9dff;
+  --sidebar-primary-foreground: #08152b;
+  --sidebar-accent: #1b2a44;
+  --sidebar-accent-foreground: #e8edf5;
+  --sidebar-border: #24344f;
+  --sidebar-ring: #5b9dff;
+}
+
+@theme inline {
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-navy: var(--navy);
+  --color-navy-foreground: var(--navy-foreground);
+  --color-sun: var(--sun);
+  --color-sun-foreground: var(--sun-foreground);
+  --color-flag: var(--flag);
+
+  --color-status-review: var(--status-review);
+  --color-status-review-foreground: var(--status-review-foreground);
+  --color-status-published: var(--status-published);
+  --color-status-published-foreground: var(--status-published-foreground);
+  --color-status-forwarded: var(--status-forwarded);
+  --color-status-forwarded-foreground: var(--status-forwarded-foreground);
+  --color-status-resolved: var(--status-resolved);
+  --color-status-resolved-foreground: var(--status-resolved-foreground);
+  --color-status-reopened: var(--status-reopened);
+  --color-status-reopened-foreground: var(--status-reopened-foreground);
+  --color-status-rejected: var(--status-rejected);
+  --color-status-rejected-foreground: var(--status-rejected-foreground);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Leaflet sits under the sticky header. */
+.leaflet-container {
+  font: inherit;
+  z-index: 0;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

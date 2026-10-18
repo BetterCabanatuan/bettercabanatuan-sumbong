@@ -1,0 +1,361 @@
+{
+  "meta": {
+    "title": "Sumbong · BetterCabanatuan",
+    "shortTitle": "Sumbong",
+    "description": "Report potholes, leaning poles, broken streetlights, clogged drainage and garbage in Cabanatuan City. Volunteers bring your report to the office that can fix it."
+  },
+  "nav": {
+    "volunteer": "Volunteers",
+    "myReports": "My reports",
+    "signIn": "Sign in",
+    "board": "Reports",
+    "about": "How it works",
+    "report": "Report a problem"
+  },
+  "footer": {
+    "unofficial": "Sumbong is run by BetterCabanatuan volunteers. It is not an official City Government channel.",
+    "emergency": "Emergency? Call CDRRMO at 0908-881-1010. Don’t wait for a report.",
+    "about": "How it works",
+    "privacy": "Privacy",
+    "attribution": "Map © OpenStreetMap contributors. Boundaries: NAMRIA & PSA via OCHA/HDX (COD-AB Philippines), CC BY-IGO 3.0. Barangay codes: PSA PSGC.",
+    "links": "Links"
+  },
+  "status": {
+    "pending_review": "In review",
+    "rejected": "Not published",
+    "published": "Published",
+    "forwarded": "Forwarded",
+    "resolved": "Resolved",
+    "reopened": "Reopened"
+  },
+  "reportForm": {
+    "pageTitle": "Report a problem",
+    "progress": "Step {step} of {total}",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Send report",
+    "optional": "(optional)",
+    "yes": "Yes",
+    "no": "No",
+    "errors": {
+      "invalid_input": "Something in the form is missing or invalid. Please check and try again.",
+      "captcha_failed": "We couldn’t confirm you’re not a bot. Please try again.",
+      "invalid_photo": "One of the photos couldn’t be read. Please remove it and add it again.",
+      "photos_required": "Please add 1 to 3 photos.",
+      "outside_city": "That pin is outside Cabanatuan City. Sumbong only covers Cabanatuan for now.",
+      "rate_limited": "You’ve sent several reports in the last hour. Please try again later.",
+      "missing_answer": "Please answer the required questions.",
+      "invalid_answer": "One of the answers isn’t valid. Please choose again.",
+      "unknown_category": "That category is no longer available. Please choose another.",
+      "server_error": "Something went wrong on our side. Your report was not sent. Please try again."
+    },
+    "location": {
+      "title": "Where is it?",
+      "lead": "Put the pin exactly where the problem is.",
+      "useMine": "Use my current location",
+      "unsupported": "Your browser can’t share its location. Tap the map instead.",
+      "denied": "We couldn’t get your location. Tap the map to place the pin.",
+      "tap": "Tap the map to place the pin.",
+      "adjust": "Drag the pin to adjust it.",
+      "landmark": "Nearby landmark",
+      "landmarkHint": "Helps the crew find it, e.g. “in front of the chapel”.",
+      "landmarkPlaceholder": "e.g. corner of Burgos Ave., near the sari-sari store"
+    },
+    "category": {
+      "title": "What kind of problem?"
+    },
+    "nearby": {
+      "title": "Has someone already reported this?",
+      "lead": "These open reports are within 100 m. If one is your problem, tap “Me too” instead of sending a new report.",
+      "distance": "{meters} m away",
+      "meToos": "{count, plural, one {# me too} other {# me too}}",
+      "meToo": "Me too",
+      "error": "Couldn’t record that. Please try again.",
+      "different": "Not the same problem? Just continue."
+    },
+    "details": {
+      "title": "Photos and details",
+      "lead": "At least one photo is required. Volunteers blur faces and plate numbers before anything is public.",
+      "description": "Description",
+      "descriptionHint": "What’s wrong, and since when? Don’t name or accuse private persons.",
+      "titleLabel": "Short title",
+      "titlePlaceholder": "e.g. Deep pothole in front of the chapel",
+      "titleHint": "This is what people see first on the board."
+    },
+    "photos": {
+      "add": "Add photo",
+      "processing": "Processing…",
+      "hint": "Up to {max} photos. Location data inside photos is removed.",
+      "tooMany": "Only {max} photos are allowed.",
+      "unreadable": "That photo couldn’t be read. Try another one.",
+      "preview": "Photo {number}",
+      "remove": "Remove photo {number}",
+      "label": "Photos"
+    },
+    "contact": {
+      "title": "Get updates (optional)",
+      "lead": "Leave your email and we’ll tell you when your report is published, forwarded and fixed. You can stay anonymous.",
+      "email": "Email address",
+      "emailHint": "Never shown publicly. Deleted 90 days after the problem is fixed.",
+      "privacy": "Your report becomes public after a volunteer reviews it. See our <link>privacy notice</link>."
+    },
+    "done": {
+      "title": "Report sent. Salamat!",
+      "lead": "A volunteer will review it soon. This is your report code.",
+      "saveLink": "Save this private link to check your report and reopen it if it isn’t really fixed:",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "viewReport": "View report {code}",
+      "meTooTitle": "Your “Me too” was counted.",
+      "meTooLead": "More residents reporting the same problem helps it get attention."
+    },
+    "urgent": "Emergency first"
+  },
+  "reportPage": {
+    "statusExplainer": {
+      "pending_review": "A volunteer is reviewing this report. It isn’t public yet.",
+      "rejected": "This report was not published.",
+      "published": "Reviewed and public. Volunteers will send it to {office} in the next batch.",
+      "forwarded": "Volunteers sent this to {office}. We’re waiting for the office to act.",
+      "resolved": "Volunteers have confirmed this is fixed.",
+      "reopened": "A resident says this isn’t fixed. It will be sent to {office} again."
+    },
+    "rejectionReason": "Reason: {reason}",
+    "photoAlt": "Photo {number} of the problem",
+    "noPhotos": "Photos are hidden to protect privacy.",
+    "barangay": "Barangay",
+    "landmark": "Landmark",
+    "office": "Responsible office",
+    "description": "Description",
+    "yes": "Yes",
+    "no": "No",
+    "timeline": {
+      "title": "Updates",
+      "submitted": "Submitted",
+      "published": "Reviewed and published",
+      "forwarded": "Forwarded to {office}",
+      "resolved": "Resolved",
+      "reopened": "Reopened",
+      "forwardedBody": "Included in the volunteers’ letter to the office through its official channel.",
+      "publishedBody": "A volunteer checked the location and type, and blurred faces and plate numbers.",
+      "meToo": "{count, plural, one {# resident said “Ako rin”} other {# residents said “Ako rin”}}"
+    },
+    "reopen": {
+      "title": "Not actually fixed?",
+      "lead": "You can reopen this report within 30 days of it being marked resolved.",
+      "placeholder": "What’s still wrong? (optional)",
+      "submit": "Reopen report",
+      "done": "Reopened. Volunteers will send it to the office again.",
+      "errors": {
+        "not_allowed": "Only the person who reported this can reopen it.",
+        "not_resolved": "This report isn’t resolved.",
+        "reopen_window_closed": "The 30-day window to reopen has passed. Please send a new report.",
+        "invalid_input": "Please check your note and try again.",
+        "server_error": "Something went wrong. Please try again."
+      }
+    },
+    "follow": {
+      "title": "Get email updates on this report",
+      "submit": "Follow",
+      "done": "Done. We’ll email you when the status changes.",
+      "errors": {
+        "invalid_email": "Please enter a valid email address.",
+        "not_allowed": "Only the person who reported this can follow it here.",
+        "server_error": "Something went wrong. Please try again."
+      },
+      "email": "Email address"
+    },
+    "back": "All reports",
+    "reportedOn": "Reported {date}",
+    "barangayName": "Brgy. {name}",
+    "cabanatuan": "Cabanatuan City",
+    "afterPhoto": "After",
+    "waitingDays": "{days, plural, =0 {Sent today} one {# day since it was sent} other {# days since it was sent}}",
+    "share": {
+      "title": "Share",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "facebook": "Share on Facebook"
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "lead": "We’ll email you a sign-in link. No password needed. An account lets you see all your reports in one place.",
+    "email": "Email address",
+    "submit": "Send sign-in link",
+    "sent": "Check your email ({email}) for the sign-in link.",
+    "error": "We couldn’t send the link. Check the address and try again.",
+    "denied": "This account isn’t a volunteer account. Ask a Coordinator for an invitation.",
+    "linkError": "That sign-in link is invalid or expired. Please request a new one.",
+    "sentTitle": "Check your email"
+  },
+  "me": {
+    "title": "My reports",
+    "signOut": "Sign out",
+    "signedInAs": "Signed in as {email}",
+    "empty": "You haven’t sent any reports while signed in.",
+    "emptyTitle": "No reports yet",
+    "cta": "Report a problem"
+  },
+  "about": {
+    "title": "How Sumbong works",
+    "intro": "Sumbong lets residents of Cabanatuan City report problems in public places so they get seen and reach the office that can fix them.",
+    "howTitle": "What happens to your report",
+    "steps": {
+      "pending_review": "A BetterCabanatuan volunteer checks the location and type, and blurs faces and plate numbers in the photos.",
+      "published": "The report appears on the public map. Anyone can add a “Me too”.",
+      "forwarded": "Volunteers send a batch of reports to the responsible office (City Engineer’s Office, CELCOR, DPWH, City ENRO or the barangay) through its official channel, usually a letter to the Mayor’s Office.",
+      "resolved": "When the problem is fixed, volunteers mark it resolved. If it isn’t really fixed, you can reopen it within 30 days."
+    },
+    "unofficial": "Sumbong is a volunteer project, not an official City Government system. Sending a report here is not the same as filing an official complaint, but volunteers file it with the right office for you.",
+    "emergency": "For emergencies (live wires, flooding with people in danger, fires) call CDRRMO at 0908-881-1010 right away.",
+    "cta": "Report a problem"
+  },
+  "privacy": {
+    "title": "Privacy notice",
+    "intro": "BetterCabanatuan collects only what it needs to get reported problems fixed, under the Data Privacy Act of 2012 (RA 10173).",
+    "sections": [
+      {
+        "heading": "What we collect",
+        "items": [
+          "The report itself: location, type, answers, description and photos. Location data inside photos is removed when you upload them.",
+          "Your email address, only if you choose to give it, or your account email if you are signed in.",
+          "Salted, one-way hashes of your IP address and a random browser id, used only to stop spam. We never store your raw IP address."
+        ]
+      },
+      {
+        "heading": "Who sees what",
+        "items": [
+          "Before a volunteer reviews it, only volunteers and you can see your report.",
+          "After review, the report, location and cleared photos are public. Volunteers pixelate faces, plate numbers and names first.",
+          "Responsible offices receive the public parts of the report in a letter. They never receive your email address.",
+          "Your email address is never shown publicly or given to offices."
+        ]
+      },
+      {
+        "heading": "How long we keep it",
+        "items": [
+          "Contact details: deleted 90 days after the problem is marked fixed, or 30 days after a report is rejected.",
+          "Spam-prevention hashes: deleted after 30 days.",
+          "The de-identified public report stays on the map as a public record."
+        ]
+      },
+      {
+        "heading": "Services we use",
+        "items": [
+          "Supabase (database and photo storage), Cloudflare (hosting and spam protection) and Resend (email). They process data only on our behalf."
+        ]
+      },
+      {
+        "heading": "Your rights",
+        "items": [
+          "You can ask to see, correct or delete your data, or object to its processing. Email our Data Protection Officer below and include your report code."
+        ]
+      }
+    ],
+    "contactHeading": "Data Protection Officer",
+    "npc": "You may also file a complaint with the National Privacy Commission (privacy.gov.ph).",
+    "updated": "Last updated October 2026."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "lead": "This report may not be public yet, or the link is wrong.",
+    "home": "Go to the map"
+  },
+  "email": {
+    "cta": "View your report",
+    "footer": "You get this because you followed a report on Sumbong · BetterCabanatuan, a volunteer project. It is not an official City Government message.",
+    "submitted": {
+      "subject": "We received your report {code}",
+      "body": "Salamat! Your {category} report {code} was received. A volunteer will review it soon. Keep this email: its link lets you check the report and reopen it if it isn’t really fixed."
+    },
+    "published": {
+      "subject": "Your report {code} is now public",
+      "body": "A volunteer reviewed your {category} report {code}. It is now on the public map and will be sent to {office} in the next batch."
+    },
+    "rejected": {
+      "subject": "Your report {code} was not published",
+      "body": "A volunteer reviewed your report {code} and did not publish it. Reason: {reason}"
+    },
+    "forwarded": {
+      "subject": "Your report {code} was sent to {office}",
+      "body": "Volunteers sent your {category} report {code} to {office} through its official channel. We’ll tell you when it’s fixed."
+    },
+    "resolved": {
+      "subject": "Your report {code} is marked fixed",
+      "body": "Volunteers marked your {category} report {code} as resolved. If it isn’t really fixed, you can reopen it within 30 days using the link below."
+    },
+    "reopened": {
+      "subject": "Your report {code} was reopened",
+      "body": "Report {code} was reopened because the problem isn’t fixed. Volunteers will send it to {office} again."
+    },
+    "misrouted": {
+      "subject": "Your report {code} is going to a different office",
+      "body": "The office that received report {code} said it isn’t theirs. Volunteers reassigned it to {office} and will send it there in the next batch."
+    }
+  },
+  "board": {
+    "title": "Reports in Cabanatuan",
+    "lead": "Tap “Ako rin” if it affects you too. Reports with the most “Ako rin” get noticed first.",
+    "cta": "Report a problem",
+    "listLabel": "Reports",
+    "sort": {
+      "label": "Sort by",
+      "top": "Most “Ako rin”",
+      "new": "Newest",
+      "active": "Recently updated"
+    },
+    "mode": {
+      "label": "Show as",
+      "list": "List",
+      "map": "Map"
+    },
+    "view": {
+      "open": "Open",
+      "resolved": "Resolved",
+      "all": "All"
+    },
+    "filters": {
+      "title": "Filters",
+      "button": "Filters",
+      "buttonActive": "Filters ({count})",
+      "status": "Status",
+      "category": "Type",
+      "allCategories": "All types",
+      "barangay": "Barangay",
+      "allBarangays": "All barangays"
+    },
+    "meToo": "Ako rin",
+    "meTooLabel": "Ako rin (me too): {count, plural, one {# resident} other {# residents}}",
+    "meTooFailed": "Couldn’t record your “Ako rin”. Please try again.",
+    "barangay": "Brgy. {name}",
+    "meta": {
+      "forwarded": "Sent to {office} {when}",
+      "published": "Goes to {office} in the next batch",
+      "resolved": "Fixed {when}",
+      "reopened": "Reporter says it isn’t fixed yet"
+    },
+    "error": {
+      "title": "Couldn’t load reports",
+      "description": "Check your connection and try again.",
+      "retry": "Try again"
+    },
+    "empty": {
+      "title": "No reports here yet",
+      "description": "Nothing matches these filters. See a problem? Be the first to report it.",
+      "cta": "Report a problem"
+    },
+    "loadMore": "Load more",
+    "how": {
+      "title": "How it works",
+      "step1": "Report it with a photo and a pin on the map.",
+      "step2": "A volunteer reviews it and blurs faces and plate numbers.",
+      "step3": "Volunteers send it to the right office every week.",
+      "step4": "We’ll tell you when it’s fixed."
+    },
+    "emergency": {
+      "title": "Emergency?",
+      "body": "Live wires, flooding with people in danger, or fire? Don’t report here. Call CDRRMO at 0908-881-1010."
+    }
+  }
+}

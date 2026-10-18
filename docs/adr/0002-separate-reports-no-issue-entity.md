@@ -1,0 +1,3 @@
+# Separate Reports, with no Issue entity grouping them
+
+When several residents report the same problem, each submission stays its own Report. There is no parent "Issue" that owns the status, unlike SeeClickFix, FixMyStreet and Open311-style systems, where a reader would expect one. We chose this to keep the model and the Review workflow simple for a small volunteer team. Duplication is handled in lighter ways. Before submitting, the Reporter sees nearby Reports and can add a Me Too instead. After v1, Volunteers will be able to link a Report as a Duplicate of an Original. A Duplicate always takes its Original's status, Followers of every linked Report are notified, and a Digest lists the Original once with a count.

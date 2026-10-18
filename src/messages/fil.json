@@ -1,0 +1,361 @@
+{
+  "meta": {
+    "title": "Sumbong · BetterCabanatuan",
+    "shortTitle": "Sumbong",
+    "description": "I-sumbong ang lubak, nakatagilid na poste, patay na ilaw sa kalye, barado na kanal at basura sa Lungsod ng Cabanatuan. Dadalhin ng mga volunteer ang sumbong mo sa opisinang makakaayos nito."
+  },
+  "nav": {
+    "volunteer": "Volunteers",
+    "myReports": "Mga sumbong ko",
+    "signIn": "Mag-sign in",
+    "board": "Mga sumbong",
+    "about": "Paano ito gumagana",
+    "report": "Mag-sumbong"
+  },
+  "footer": {
+    "unofficial": "Ang Sumbong ay pinapatakbo ng mga volunteer ng BetterCabanatuan. Hindi ito opisyal na channel ng Pamahalaang Lungsod.",
+    "emergency": "Emergency? Tumawag sa CDRRMO: 0908-881-1010. Huwag nang hintayin ang sumbong.",
+    "about": "Paano ito gumagana",
+    "privacy": "Privacy",
+    "attribution": "Mapa © OpenStreetMap contributors. Hangganan: NAMRIA at PSA sa pamamagitan ng OCHA/HDX (COD-AB Philippines), CC BY-IGO 3.0. Barangay codes: PSA PSGC.",
+    "links": "Mga link"
+  },
+  "status": {
+    "pending_review": "Sinusuri",
+    "rejected": "Hindi na-publish",
+    "published": "Na-publish",
+    "forwarded": "Naipadala",
+    "resolved": "Naayos na",
+    "reopened": "Binuksan muli"
+  },
+  "reportForm": {
+    "pageTitle": "Mag-sumbong",
+    "progress": "Hakbang {step} sa {total}",
+    "back": "Bumalik",
+    "next": "Susunod",
+    "submit": "Ipadala",
+    "optional": "(hindi kailangan)",
+    "yes": "Oo",
+    "no": "Hindi",
+    "errors": {
+      "invalid_input": "May kulang o mali sa form. Pakisuri at subukan ulit.",
+      "captcha_failed": "Hindi namin makumpirma na hindi ka bot. Pakisubukan ulit.",
+      "invalid_photo": "Hindi mabasa ang isa sa mga litrato. Alisin ito at idagdag ulit.",
+      "photos_required": "Magdagdag ng 1 hanggang 3 litrato.",
+      "outside_city": "Nasa labas ng Lungsod ng Cabanatuan ang pin. Cabanatuan lang muna ang sakop ng Sumbong.",
+      "rate_limited": "Marami ka nang naipadalang sumbong sa nakaraang oras. Pakisubukan mamaya.",
+      "missing_answer": "Pakisagot ang mga kailangang tanong.",
+      "invalid_answer": "May sagot na hindi tama. Pakipili ulit.",
+      "unknown_category": "Wala na ang uring iyon. Pumili ng iba.",
+      "server_error": "Nagkaproblema sa amin. Hindi naipadala ang sumbong mo. Pakisubukan ulit."
+    },
+    "location": {
+      "title": "Saan ito?",
+      "lead": "Ilagay ang pin kung saan mismo ang problema.",
+      "useMine": "Gamitin ang lokasyon ko ngayon",
+      "unsupported": "Hindi kayang ibigay ng browser mo ang lokasyon. I-tap na lang ang mapa.",
+      "denied": "Hindi namin makuha ang lokasyon mo. I-tap ang mapa para ilagay ang pin.",
+      "tap": "I-tap ang mapa para ilagay ang pin.",
+      "adjust": "Hilahin ang pin para iayos.",
+      "landmark": "Malapit na palatandaan",
+      "landmarkHint": "Para madaling mahanap, hal. “tapat ng kapilya”.",
+      "landmarkPlaceholder": "hal. kanto ng Burgos Ave., malapit sa sari-sari store"
+    },
+    "category": {
+      "title": "Anong klaseng problema?"
+    },
+    "nearby": {
+      "title": "May nakapag-sumbong na ba nito?",
+      "lead": "Ang mga bukas na sumbong na ito ay nasa loob ng 100 metro. Kung isa rito ang problema mo, i-tap ang “Ako rin” sa halip na magpadala ng bago.",
+      "distance": "{meters} metro ang layo",
+      "meToos": "{count} ang nagsabing “ako rin”",
+      "meToo": "Ako rin",
+      "error": "Hindi naitala. Pakisubukan ulit.",
+      "different": "Ibang problema ba? Ituloy lang."
+    },
+    "details": {
+      "title": "Litrato at detalye",
+      "lead": "Kailangan ng kahit isang litrato. Ibe-blur ng mga volunteer ang mukha at plate number bago ito maging publiko.",
+      "description": "Paglalarawan",
+      "descriptionHint": "Ano ang problema, at kailan pa? Huwag pangalanan o akusahan ang ibang tao.",
+      "titleLabel": "Maikling pamagat",
+      "titlePlaceholder": "hal. Malalim na lubak sa tapat ng kapilya",
+      "titleHint": "Ito ang unang makikita ng mga tao sa listahan."
+    },
+    "photos": {
+      "add": "Magdagdag ng litrato",
+      "processing": "Pinoproseso…",
+      "hint": "Hanggang {max} litrato. Tinatanggal ang lokasyong nakatago sa litrato.",
+      "tooMany": "Hanggang {max} litrato lang.",
+      "unreadable": "Hindi mabasa ang litratong iyon. Subukan ang iba.",
+      "preview": "Litrato {number}",
+      "remove": "Alisin ang litrato {number}",
+      "label": "Mga litrato"
+    },
+    "contact": {
+      "title": "Gusto mo ba ng update? (hindi kailangan)",
+      "lead": "Iwan ang email mo at sasabihan ka namin kapag na-publish, naipadala at naayos na ang sumbong mo. Puwede kang manatiling anonymous.",
+      "email": "Email address",
+      "emailHint": "Hindi ipapakita sa publiko. Buburahin 90 araw matapos maayos ang problema.",
+      "privacy": "Magiging publiko ang sumbong mo matapos itong suriin ng volunteer. Basahin ang aming <link>privacy notice</link>."
+    },
+    "done": {
+      "title": "Naipadala ang sumbong. Salamat!",
+      "lead": "Susuriin ito ng volunteer sa lalong madaling panahon. Ito ang code ng sumbong mo.",
+      "saveLink": "I-save ang pribadong link na ito para masubaybayan ang sumbong mo at mabuksan ulit kung hindi talaga naayos:",
+      "copy": "Kopyahin ang link",
+      "copied": "Nakopya na",
+      "viewReport": "Tingnan ang sumbong {code}",
+      "meTooTitle": "Naitala ang “Ako rin” mo.",
+      "meTooLead": "Mas napapansin ang problema kapag mas maraming residente ang nagsusumbong nito."
+    },
+    "urgent": "Unahin ang kaligtasan"
+  },
+  "reportPage": {
+    "statusExplainer": {
+      "pending_review": "Sinusuri pa ito ng volunteer. Hindi pa ito publiko.",
+      "rejected": "Hindi na-publish ang sumbong na ito.",
+      "published": "Nasuri na at publiko. Ipapadala ito ng mga volunteer sa {office} sa susunod na batch.",
+      "forwarded": "Naipadala na ng mga volunteer sa {office}. Hinihintay naming kumilos ang opisina.",
+      "resolved": "Kinumpirma ng mga volunteer na naayos na ito.",
+      "reopened": "May residenteng nagsabing hindi pa ito naaayos. Ipapadala ulit ito sa {office}."
+    },
+    "rejectionReason": "Dahilan: {reason}",
+    "photoAlt": "Litrato {number} ng problema",
+    "noPhotos": "Nakatago ang mga litrato para sa privacy.",
+    "barangay": "Barangay",
+    "landmark": "Palatandaan",
+    "office": "Responsableng opisina",
+    "description": "Paglalarawan",
+    "yes": "Oo",
+    "no": "Hindi",
+    "timeline": {
+      "title": "Mga update",
+      "submitted": "Isinumbong",
+      "published": "Nasuri at na-publish",
+      "forwarded": "Naipadala sa {office}",
+      "resolved": "Naayos na",
+      "reopened": "Binuksan muli",
+      "forwardedBody": "Kasama sa liham ng mga volunteer sa opisina, sa opisyal nitong channel.",
+      "publishedBody": "Sinuri ng volunteer ang lokasyon at uri, at pinalabo ang mukha at plate number.",
+      "meToo": "{count} residente ang nagsabing “Ako rin”"
+    },
+    "reopen": {
+      "title": "Hindi pa talaga naayos?",
+      "lead": "Puwede mong buksan ulit ang sumbong na ito sa loob ng 30 araw matapos itong markahang naayos.",
+      "placeholder": "Ano pa ang problema? (hindi kailangan)",
+      "submit": "Buksan ulit ang sumbong",
+      "done": "Nabuksan ulit. Ipapadala ulit ito ng mga volunteer sa opisina.",
+      "errors": {
+        "not_allowed": "Ang nag-sumbong lang ang puwedeng magbukas ulit nito.",
+        "not_resolved": "Hindi pa naaayos ang sumbong na ito.",
+        "reopen_window_closed": "Lumipas na ang 30 araw para buksan ulit. Magpadala na lang ng bagong sumbong.",
+        "invalid_input": "Pakisuri ang sulat mo at subukan ulit.",
+        "server_error": "Nagkaproblema. Pakisubukan ulit."
+      }
+    },
+    "follow": {
+      "title": "Makatanggap ng email update tungkol sa sumbong na ito",
+      "submit": "Sundan",
+      "done": "Ayos na. Mag-e-email kami kapag nagbago ang status.",
+      "errors": {
+        "invalid_email": "Maglagay ng tamang email address.",
+        "not_allowed": "Ang nag-sumbong lang ang puwedeng sumunod dito.",
+        "server_error": "Nagkaproblema. Pakisubukan ulit."
+      },
+      "email": "Email address"
+    },
+    "back": "Lahat ng sumbong",
+    "reportedOn": "Isinumbong noong {date}",
+    "barangayName": "Brgy. {name}",
+    "cabanatuan": "Lungsod ng Cabanatuan",
+    "afterPhoto": "Pagkatapos",
+    "waitingDays": "{days, plural, =0 {Naipadala ngayong araw} one {# araw mula nang maipadala} other {# araw mula nang maipadala}}",
+    "share": {
+      "title": "Ibahagi",
+      "copy": "Kopyahin ang link",
+      "copied": "Nakopya ang link",
+      "facebook": "I-share sa Facebook"
+    }
+  },
+  "login": {
+    "title": "Mag-sign in",
+    "lead": "Mag-e-email kami ng link para makapag-sign in. Hindi kailangan ng password. Sa account, makikita mo ang lahat ng sumbong mo sa iisang lugar.",
+    "email": "Email address",
+    "submit": "Ipadala ang sign-in link",
+    "sent": "Tingnan ang email mo ({email}) para sa sign-in link.",
+    "error": "Hindi namin naipadala ang link. Pakisuri ang email at subukan ulit.",
+    "denied": "Hindi volunteer account ang account na ito. Humingi ng imbitasyon sa isang Coordinator.",
+    "linkError": "Hindi na gumagana o expired na ang sign-in link. Humingi ng bago.",
+    "sentTitle": "Tingnan ang email mo"
+  },
+  "me": {
+    "title": "Mga sumbong ko",
+    "signOut": "Mag-sign out",
+    "signedInAs": "Naka-sign in bilang {email}",
+    "empty": "Wala ka pang naipadalang sumbong habang naka-sign in.",
+    "emptyTitle": "Wala pang sumbong",
+    "cta": "Mag-sumbong"
+  },
+  "about": {
+    "title": "Paano gumagana ang Sumbong",
+    "intro": "Sa Sumbong, puwedeng i-report ng mga taga-Cabanatuan ang mga problema sa pampublikong lugar para mapansin ito at makarating sa opisinang makakaayos.",
+    "howTitle": "Ano ang nangyayari sa sumbong mo",
+    "steps": {
+      "pending_review": "Sinusuri ng volunteer ng BetterCabanatuan ang lokasyon at uri, at bina-blur ang mukha at plate number sa mga litrato.",
+      "published": "Lumalabas ang sumbong sa pampublikong mapa. Puwedeng mag-“Ako rin” ang kahit sino.",
+      "forwarded": "Ipinapadala ng mga volunteer ang isang batch ng sumbong sa responsableng opisina (City Engineer’s Office, CELCOR, DPWH, City ENRO o barangay) sa opisyal nitong channel, kadalasan ay sulat sa Tanggapan ng Mayor.",
+      "resolved": "Kapag naayos na, mamarkahan ito ng mga volunteer na naayos. Kung hindi talaga naayos, puwede mo itong buksan ulit sa loob ng 30 araw."
+    },
+    "unofficial": "Volunteer project ang Sumbong, hindi opisyal na sistema ng Pamahalaang Lungsod. Hindi ito katumbas ng opisyal na reklamo, pero ang mga volunteer ang magpapasa nito sa tamang opisina para sa iyo.",
+    "emergency": "Para sa emergency (may kuryenteng kable, baha na may taong nanganganib, sunog), tumawag agad sa CDRRMO: 0908-881-1010.",
+    "cta": "Mag-sumbong"
+  },
+  "privacy": {
+    "title": "Privacy notice",
+    "intro": "Kinokolekta lang ng BetterCabanatuan ang kailangan para maayos ang mga isinumbong na problema, alinsunod sa Data Privacy Act of 2012 (RA 10173).",
+    "sections": [
+      {
+        "heading": "Ano ang kinokolekta namin",
+        "items": [
+          "Ang sumbong mismo: lokasyon, uri, mga sagot, paglalarawan at litrato. Tinatanggal ang lokasyong nakatago sa litrato pag-upload.",
+          "Ang email mo, kung pipiliin mong ibigay, o ang email ng account mo kung naka-sign in ka.",
+          "Salted, one-way hash ng IP address mo at ng random na browser id, para lang pigilan ang spam. Hindi namin iniimbak ang mismong IP address mo."
+        ]
+      },
+      {
+        "heading": "Sino ang nakakakita ng ano",
+        "items": [
+          "Bago suriin ng volunteer, ikaw at ang mga volunteer lang ang nakakakita ng sumbong mo.",
+          "Matapos suriin, publiko na ang sumbong, lokasyon at mga nasuring litrato. Pinapalabo muna ng mga volunteer ang mukha, plate number at pangalan.",
+          "Natatanggap ng mga responsableng opisina ang pampublikong bahagi ng sumbong sa isang sulat. Hindi nila natatanggap ang email mo.",
+          "Hindi kailanman ipapakita sa publiko o ibibigay sa mga opisina ang email mo."
+        ]
+      },
+      {
+        "heading": "Gaano katagal namin ito iniingatan",
+        "items": [
+          "Contact details: binubura 90 araw matapos markahang naayos ang problema, o 30 araw matapos ma-reject ang sumbong.",
+          "Mga hash laban sa spam: binubura matapos ang 30 araw.",
+          "Nananatili sa mapa ang de-identified na pampublikong sumbong bilang pampublikong rekord."
+        ]
+      },
+      {
+        "heading": "Mga serbisyong ginagamit namin",
+        "items": [
+          "Supabase (database at imbakan ng litrato), Cloudflare (hosting at proteksyon laban sa spam) at Resend (email). Para lang sa amin nila pinoproseso ang data."
+        ]
+      },
+      {
+        "heading": "Ang mga karapatan mo",
+        "items": [
+          "Puwede mong hilinging makita, itama o burahin ang data mo, o tumutol sa pagproseso nito. Mag-email sa aming Data Protection Officer sa ibaba at isama ang code ng sumbong mo."
+        ]
+      }
+    ],
+    "contactHeading": "Data Protection Officer",
+    "npc": "Puwede ka ring magreklamo sa National Privacy Commission (privacy.gov.ph).",
+    "updated": "Huling na-update noong Oktubre 2026."
+  },
+  "notFound": {
+    "title": "Hindi makita ang pahina",
+    "lead": "Baka hindi pa publiko ang sumbong na ito, o mali ang link.",
+    "home": "Pumunta sa mapa"
+  },
+  "email": {
+    "cta": "Tingnan ang sumbong mo",
+    "footer": "Natanggap mo ito dahil sinusundan mo ang isang sumbong sa Sumbong · BetterCabanatuan, isang volunteer project. Hindi ito opisyal na mensahe ng Pamahalaang Lungsod.",
+    "submitted": {
+      "subject": "Natanggap namin ang sumbong mo {code}",
+      "body": "Salamat! Natanggap ang sumbong mong {category} ({code}). Susuriin ito ng volunteer sa lalong madaling panahon. Itago ang email na ito: sa link nito, masusubaybayan mo ang sumbong at mabubuksan ulit kung hindi talaga naayos."
+    },
+    "published": {
+      "subject": "Publiko na ang sumbong mo {code}",
+      "body": "Nasuri na ng volunteer ang sumbong mong {category} ({code}). Nasa pampublikong mapa na ito at ipapadala sa {office} sa susunod na batch."
+    },
+    "rejected": {
+      "subject": "Hindi na-publish ang sumbong mo {code}",
+      "body": "Nasuri ng volunteer ang sumbong mo ({code}) at hindi ito na-publish. Dahilan: {reason}"
+    },
+    "forwarded": {
+      "subject": "Naipadala sa {office} ang sumbong mo {code}",
+      "body": "Ipinadala ng mga volunteer ang sumbong mong {category} ({code}) sa {office} sa opisyal nitong channel. Sasabihan ka namin kapag naayos na."
+    },
+    "resolved": {
+      "subject": "Minarkahang naayos ang sumbong mo {code}",
+      "body": "Minarkahan ng mga volunteer na naayos na ang sumbong mong {category} ({code}). Kung hindi talaga naayos, puwede mo itong buksan ulit sa loob ng 30 araw gamit ang link sa ibaba."
+    },
+    "reopened": {
+      "subject": "Binuksan muli ang sumbong mo {code}",
+      "body": "Binuksan muli ang sumbong {code} dahil hindi pa naaayos ang problema. Ipapadala ulit ito ng mga volunteer sa {office}."
+    },
+    "misrouted": {
+      "subject": "Ililipat sa ibang opisina ang sumbong mo {code}",
+      "body": "Sinabi ng opisinang nakatanggap ng sumbong {code} na hindi ito sakop nila. Inilipat ito ng mga volunteer sa {office} at ipapadala roon sa susunod na batch."
+    }
+  },
+  "board": {
+    "title": "Mga sumbong sa Cabanatuan",
+    "lead": "Pindutin ang “Ako rin” kung apektado ka rin. Ang may pinakamaraming “Ako rin” ang unang napapansin.",
+    "cta": "Mag-sumbong",
+    "listLabel": "Mga sumbong",
+    "sort": {
+      "label": "Ayusin ayon sa",
+      "top": "Pinakamaraming Ako rin",
+      "new": "Pinakabago",
+      "active": "May bagong update"
+    },
+    "mode": {
+      "label": "Ipakita bilang",
+      "list": "Listahan",
+      "map": "Mapa"
+    },
+    "view": {
+      "open": "Bukas pa",
+      "resolved": "Naayos na",
+      "all": "Lahat"
+    },
+    "filters": {
+      "title": "Mga filter",
+      "button": "Filter",
+      "buttonActive": "Filter ({count})",
+      "status": "Katayuan",
+      "category": "Uri",
+      "allCategories": "Lahat ng uri",
+      "barangay": "Barangay",
+      "allBarangays": "Lahat ng barangay"
+    },
+    "meToo": "Ako rin",
+    "meTooLabel": "Ako rin: {count} residente",
+    "meTooFailed": "Hindi naitala ang “Ako rin” mo. Pakisubukan ulit.",
+    "barangay": "Brgy. {name}",
+    "meta": {
+      "forwarded": "Naipadala sa {office} {when}",
+      "published": "Ipapadala sa {office} sa susunod na batch",
+      "resolved": "Naayos {when}",
+      "reopened": "Sabi ng nag-sumbong, hindi pa talaga naayos"
+    },
+    "error": {
+      "title": "Hindi ma-load ang mga sumbong",
+      "description": "Pakisuri ang koneksyon mo at subukan ulit.",
+      "retry": "Subukan ulit"
+    },
+    "empty": {
+      "title": "Wala pang sumbong dito",
+      "description": "Walang tugma sa mga filter na ito. May nakitang problema? Ikaw na ang unang mag-sumbong.",
+      "cta": "Mag-sumbong"
+    },
+    "loadMore": "Ipakita pa",
+    "how": {
+      "title": "Paano ito gumagana",
+      "step1": "Mag-sumbong gamit ang litrato at pin sa mapa.",
+      "step2": "Sinusuri ng volunteer at pinalalabo ang mukha at plate number.",
+      "step3": "Ipinapadala ng mga volunteer sa tamang opisina tuwing linggo.",
+      "step4": "Sasabihan ka kapag naayos na."
+    },
+    "emergency": {
+      "title": "Emergency?",
+      "body": "May kuryenteng kable, baha na may taong nanganganib, o sunog? Huwag nang mag-sumbong dito. Tumawag sa CDRRMO: 0908-881-1010."
+    }
+  }
+}
