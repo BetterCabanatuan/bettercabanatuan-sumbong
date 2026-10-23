@@ -222,6 +222,7 @@
     "deviceTitle": "Sa device na ito",
     "deviceLead": "Mga sumbong na ipinadala mula sa browser na ito. Makikita ito ng sinumang gumagamit ng teleponong ito.",
     "deviceEmpty": "Walang naka-save na sumbong sa device na ito.",
+    "deviceError": "Hindi makuha ang mga sumbong na naka-save sa device na ito. Naka-save pa rin ang mga ito; pakisubukan ulit mamaya.",
     "deviceLoading": "Kinukuha ang mga sumbong…",
     "forget": "Alisin ang {code} sa device na ito",
     "accountTitle": "Sinusundan gamit ang account mo",

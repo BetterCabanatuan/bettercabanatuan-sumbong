@@ -222,6 +222,7 @@
     "deviceTitle": "On this device",
     "deviceLead": "Reports sent from this browser. Anyone who uses this phone can see them.",
     "deviceEmpty": "No reports are saved on this device.",
+    "deviceError": "Couldn’t load the reports saved on this device. They’re still saved; please try again later.",
     "deviceLoading": "Loading reports…",
     "forget": "Remove {code} from this device",
     "accountTitle": "Followed with your account",

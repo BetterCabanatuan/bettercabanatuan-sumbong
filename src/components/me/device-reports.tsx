@@ -26,7 +26,7 @@ export function DeviceReports() {
   const raw = useSyncExternalStore(subscribeDeviceReports, deviceReportsSnapshot, () => null);
   const saved = useMemo<DeviceReport[] | null>(() => (raw === null ? null : readDeviceReports()), [raw]);
 
-  const { data, isPending } = useQuery({
+  const { data, isPending, isError } = useQuery({
     queryKey: ["device-reports", saved?.map((r) => r.code).join(",")],
     enabled: !!saved?.length,
     queryFn: () => getDeviceReports(saved!.map(({ code, token }) => ({ code, token }))),
@@ -39,6 +39,11 @@ export function DeviceReports() {
         <Skeleton className="h-16 w-full" />
       </div>
     );
+  }
+
+  // The saved links are still on the device; don't make a failed lookup look like an empty list.
+  if (isError) {
+    return <p className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">{t("deviceError")}</p>;
   }
 
   const found = new Map((data ?? []).map((r) => [r.code, r]));

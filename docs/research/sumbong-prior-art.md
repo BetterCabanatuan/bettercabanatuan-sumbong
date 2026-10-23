@@ -140,7 +140,7 @@ Read from the repo on 2026-10-19. Where docs and code disagree, the code wins. T
 - Scorecard
 - Web push
 - SMS / Messenger intake
-- Offline drafts
+- Offline sending (an unfinished Report is kept on the device, but sending still needs a connection)
 - Open data / Open311 export
 - Any record of office replies, follow-up letters or escalation
 
