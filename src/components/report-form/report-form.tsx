@@ -1,14 +1,15 @@
 "use client";
 
-import { ArrowLeft, Check, Copy, LocateFixed, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Check, Copy, History, LocateFixed, Share2, TriangleAlert, Users } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { SubmitErrorCode } from "@/app/api/reports/route";
 import { CategoryIcon } from "@/components/category-icon";
 import { type LatLng, LocationPicker } from "@/components/map";
 import { Turnstile } from "@/components/turnstile";
+import { FollowForm } from "@/app/(public)/r/[code]/reporter-actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,16 +30,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { localized } from "@/i18n/config";
 import type { CategoryWithQuestions } from "@/lib/data";
+import { saveDeviceReport } from "@/lib/device-reports";
+import { clearDraft, loadDraft, saveDraftFields, saveDraftPhotos } from "@/lib/draft";
 import type { CategoryQuestion, Locale } from "@/lib/types";
-import { NearbyCheck } from "./nearby-check";
+import { NearbyList, useNearbyReports } from "./nearby-check";
 import { PhotoPicker } from "./photo-picker";
 
-type Step = "location" | "category" | "details" | "contact";
-const STEPS: Step[] = ["location", "category", "details", "contact"];
+// "nearby" is shown only when open Reports of the same Category are close to the pin.
+type Step = "location" | "category" | "nearby" | "details" | "review";
+const STEPS: Step[] = ["location", "category", "nearby", "details", "review"];
 const STEP_ENTER =
   "transition-[opacity,translate] duration-200 ease-out starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
 
-type Done = { kind: "submitted"; code: string; token: string } | { kind: "meToo"; code: string };
+type Done =
+  | { kind: "submitted"; id: string; code: string; token: string; following: boolean }
+  | { kind: "meToo"; code: string };
+
+/** Where a restored draft picks up: the furthest step whose earlier steps are still complete. */
+function resumeStep(saved: string, ready: { location: boolean; category: boolean; photos: boolean }): Step {
+  if (!ready.location || saved === "location") return "location";
+  if (!ready.category || saved === "category" || saved === "nearby") return "category";
+  if (!ready.photos || saved === "details") return "details";
+  return "review";
+}
 
 export function ReportForm({
   categories,
@@ -68,6 +82,8 @@ export function ReportForm({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<SubmitErrorCode | null>(null);
   const [done, setDone] = useState<Done | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const [restored, setRestored] = useState(false);
 
   // Start each step at its top; on phones the Next button sits far down the previous step.
   const top = useRef<HTMLDivElement>(null);
@@ -82,6 +98,67 @@ export function ReportForm({
 
   const category = categories.find((c) => c.id === categoryId);
   const missingAnswer = category?.questions.some((q) => q.required && !answers[q.id]?.trim());
+  const nearby = useNearbyReports(location?.lat, location?.lng, category?.id);
+  const matches = nearby.data ?? [];
+
+  // Pick up an unfinished Report left on this device.
+  useEffect(() => {
+    let cancelled = false;
+    loadDraft().then((draft) => {
+      if (cancelled) return;
+      if (draft && (draft.location || draft.photos.length > 0)) {
+        const saved = categories.find((c) => c.id === draft.categoryId);
+        const savedAnswers = saved ? draft.answers : {};
+        setLocation(draft.location);
+        setLandmark(draft.landmark);
+        setCategoryId(saved?.id ?? null);
+        setAnswers(savedAnswers);
+        setTitle(draft.title);
+        setDescription(draft.description);
+        setPhotos(draft.photos);
+        setStep(
+          resumeStep(draft.step, {
+            location: draft.location !== null,
+            category: !!saved && !saved.questions.some((q) => q.required && !savedAnswers[q.id]?.trim()),
+            photos: draft.photos.length > 0,
+          }),
+        );
+        setRestored(true);
+      }
+      setHydrated(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [categories]);
+
+  // Keep the draft up to date once there is something worth keeping.
+  useEffect(() => {
+    if (!hydrated || done || (!location && photos.length === 0)) return;
+    saveDraftFields({ step, location, landmark, categoryId, answers, title, description });
+  }, [hydrated, done, step, location, landmark, categoryId, answers, title, description, photos.length]);
+  useEffect(() => {
+    if (hydrated && !done) void saveDraftPhotos(photos);
+  }, [hydrated, done, photos]);
+
+  function startOver() {
+    void clearDraft();
+    setLocation(null);
+    setLandmark("");
+    setCategoryId(null);
+    setAnswers({});
+    setPhotos([]);
+    setTitle("");
+    setDescription("");
+    setSubmitError(null);
+    setRestored(false);
+    setStep("location");
+  }
+
+  function finishWithMeToo(code: string) {
+    void clearDraft();
+    setDone({ kind: "meToo", code });
+  }
 
   function locate() {
     if (!navigator.geolocation) {
@@ -130,9 +207,17 @@ export function ReportForm({
 
     try {
       const response = await fetch("/api/reports", { method: "POST", body: form });
-      const body = (await response.json()) as { code?: string; token?: string; error?: SubmitErrorCode };
-      if (response.ok && body.code && body.token) {
-        setDone({ kind: "submitted", code: body.code, token: body.token });
+      const body = (await response.json()) as { id?: string; code?: string; token?: string; error?: SubmitErrorCode };
+      if (response.ok && body.id && body.code && body.token) {
+        saveDeviceReport(body.code, body.token);
+        void clearDraft();
+        setDone({
+          kind: "submitted",
+          id: body.id,
+          code: body.code,
+          token: body.token,
+          following: Boolean(email.trim() || signedInEmail),
+        });
         window.scrollTo({ top: 0 });
         return;
       }
@@ -149,17 +234,30 @@ export function ReportForm({
 
   if (done) return <DoneView done={done} />;
 
-  const stepIndex = STEPS.indexOf(step);
-  const back = stepIndex > 0 ? () => setStep(STEPS[stepIndex - 1]) : undefined;
+  const steps = STEPS.filter((s) => s !== "nearby" || matches.length > 0 || step === "nearby");
+  const stepIndex = steps.indexOf(step);
+  const back = stepIndex > 0 ? () => setStep(steps[stepIndex - 1]) : undefined;
 
   return (
     <div ref={top} className="flex scroll-mt-24 flex-col gap-6">
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium text-muted-foreground">
-          {t("progress", { step: stepIndex + 1, total: STEPS.length })}
+          {t("progress", { step: stepIndex + 1, total: steps.length })}
         </p>
-        <Progress value={((stepIndex + 1) / STEPS.length) * 100} aria-label={t("progress", { step: stepIndex + 1, total: STEPS.length })} />
+        <Progress value={((stepIndex + 1) / steps.length) * 100} aria-label={t("progress", { step: stepIndex + 1, total: steps.length })} />
       </div>
+
+      {restored && (
+        <Alert className="bg-card">
+          <History />
+          <AlertDescription className="flex flex-col items-start gap-2">
+            <p>{t("draft.restored")}</p>
+            <Button type="button" variant="outline" size="sm" onClick={startOver}>
+              {t("draft.startOver")}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {submitError && (
         <Alert variant="destructive" className="bg-card">
@@ -244,15 +342,26 @@ export function ReportForm({
                   onChange={(value) => setAnswers((a) => ({ ...a, [q.id]: value }))}
                 />
               ))}
-              <NearbyCheck
-                lat={location.lat}
-                lng={location.lng}
-                categoryId={category.id}
-                onMeToo={(code) => setDone({ kind: "meToo", code })}
-              />
             </FieldGroup>
           )}
-          <StepNav onBack={back} onNext={() => setStep("details")} nextDisabled={!category || missingAnswer} />
+          <StepNav
+            onBack={back}
+            onNext={() => setStep(matches.length > 0 ? "nearby" : "details")}
+            nextDisabled={!category || missingAnswer || nearby.isLoading}
+            nextPending={!!category && nearby.isLoading}
+          />
+        </FieldSet>
+      )}
+
+      {step === "nearby" && (
+        <FieldSet className={STEP_ENTER}>
+          <StepHeading title={t("nearby.title")} lead={t("nearby.lead")} />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="size-4" aria-hidden="true" />
+            {t("nearby.count", { count: matches.length })}
+          </div>
+          <NearbyList nearby={matches} onMeToo={finishWithMeToo} />
+          <StepNav onBack={back} onNext={() => setStep("details")} nextLabel={t("nearby.continue")} />
         </FieldSet>
       )}
 
@@ -276,7 +385,9 @@ export function ReportForm({
               <FieldDescription>{t("details.titleHint")}</FieldDescription>
             </Field>
             <Field>
-              <FieldLabel htmlFor="description">{t("details.description")}</FieldLabel>
+              <FieldLabel htmlFor="description">
+                {t("details.description")} <span className="font-normal text-muted-foreground">{t("optional")}</span>
+              </FieldLabel>
               <Textarea
                 id="description"
                 value={description}
@@ -288,14 +399,50 @@ export function ReportForm({
               <FieldDescription>{t("details.descriptionHint")}</FieldDescription>
             </Field>
           </FieldGroup>
-          <StepNav onBack={back} onNext={() => setStep("contact")} nextDisabled={photos.length === 0} />
+          <StepNav onBack={back} onNext={() => setStep("review")} nextDisabled={photos.length === 0} />
         </FieldSet>
       )}
 
-      {step === "contact" && (
+      {step === "review" && location && category && (
         <FieldSet className={STEP_ENTER}>
-          <StepHeading title={t("contact.title")} lead={t("contact.lead")} />
+          <StepHeading title={t("review.title")} lead={t("review.lead")} />
+          <dl className="flex flex-col divide-y rounded-xl border bg-card">
+            <SummaryRow label={t("review.location")} onEdit={() => setStep("location")}>
+              {landmark.trim() || t("review.pinOnly")}
+            </SummaryRow>
+            <SummaryRow label={t("review.category")} onEdit={() => setStep("category")}>
+              <span className="flex items-center gap-2 font-semibold">
+                <CategoryIcon icon={category.icon} className="size-4 shrink-0 text-primary" />
+                {localized(category, "name", locale)}
+              </span>
+              {category.questions
+                .filter((q) => answers[q.id]?.trim())
+                .map((q) => (
+                  <span key={q.id} className="block text-muted-foreground">
+                    {localized(q, "prompt", locale)}{" "}
+                    <span className="font-medium text-foreground">{answerLabel(q, answers[q.id], locale, t)}</span>
+                  </span>
+                ))}
+            </SummaryRow>
+            <SummaryRow label={t("review.photos")} onEdit={() => setStep("details")}>
+              <PhotoThumbs photos={photos} />
+            </SummaryRow>
+            <SummaryRow label={t("review.details")} onEdit={() => setStep("details")}>
+              {title.trim() || description.trim() ? (
+                <>
+                  {title.trim() && <span className="block font-semibold">{title.trim()}</span>}
+                  {description.trim() && <span className="block whitespace-pre-line">{description.trim()}</span>}
+                </>
+              ) : (
+                <span className="text-muted-foreground">{t("review.noDetails")}</span>
+              )}
+            </SummaryRow>
+          </dl>
           <FieldGroup>
+            <FieldSet>
+              <FieldLegend variant="label">{t("contact.title")}</FieldLegend>
+              <FieldDescription>{t("contact.lead")}</FieldDescription>
+            </FieldSet>
             <Field>
               <FieldLabel htmlFor="email">{t("contact.email")}</FieldLabel>
               <Input
@@ -354,7 +501,19 @@ function StepHeading({ title, lead }: { title: string; lead?: string }) {
   );
 }
 
-function StepNav({ onBack, onNext, nextDisabled }: { onBack?: () => void; onNext: () => void; nextDisabled?: boolean }) {
+function StepNav({
+  onBack,
+  onNext,
+  nextDisabled,
+  nextPending,
+  nextLabel,
+}: {
+  onBack?: () => void;
+  onNext: () => void;
+  nextDisabled?: boolean;
+  nextPending?: boolean;
+  nextLabel?: string;
+}) {
   const t = useTranslations("reportForm");
   return (
     <div className="flex gap-2">
@@ -365,10 +524,57 @@ function StepNav({ onBack, onNext, nextDisabled }: { onBack?: () => void; onNext
         </Button>
       )}
       <Button type="button" size="lg" className="h-12 flex-1 text-base" disabled={nextDisabled} onClick={onNext}>
-        {t("next")}
+        {nextPending && <Spinner data-icon="inline-start" />}
+        {nextLabel ?? t("next")}
       </Button>
     </div>
   );
+}
+
+function SummaryRow({ label, onEdit, children }: { label: string; onEdit: () => void; children: ReactNode }) {
+  const t = useTranslations("reportForm.review");
+  return (
+    <div className="flex items-start gap-3 p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <dt className="text-sm text-muted-foreground">{label}</dt>
+        <dd className="text-sm break-words">{children}</dd>
+      </div>
+      <Button type="button" variant="ghost" size="sm" onClick={onEdit} aria-label={t("editLabel", { section: label })}>
+        {t("edit")}
+      </Button>
+    </div>
+  );
+}
+
+function PhotoThumbs({ photos }: { photos: Blob[] }) {
+  const t = useTranslations("reportForm.photos");
+  const urls = useMemo(() => photos.map((p) => URL.createObjectURL(p)), [photos]);
+  return (
+    <span className="mt-1 flex gap-2">
+      {photos.map((photo, i) => (
+        // eslint-disable-next-line @next/next/no-img-element -- local blob preview
+        <img
+          key={urls[i]}
+          src={urls[i]}
+          alt={t("preview", { number: i + 1 })}
+          onLoad={() => URL.revokeObjectURL(urls[i])}
+          className="size-16 rounded-md bg-muted object-cover"
+        />
+      ))}
+    </span>
+  );
+}
+
+function answerLabel(
+  question: CategoryQuestion,
+  value: string,
+  locale: Locale,
+  t: ReturnType<typeof useTranslations<"reportForm">>,
+) {
+  if (question.kind === "yes_no") return value === "yes" ? t("yes") : t("no");
+  const choice = question.choices.find((c) => c.value === value);
+  if (choice) return locale === "en" ? choice.label_en : choice.label_fil;
+  return value;
 }
 
 function QuestionField({
@@ -454,6 +660,7 @@ function DoneView({ done }: { done: Done }) {
   }
 
   const trackingUrl = `${window.location.origin}/r/${done.code}?t=${done.token}`;
+  const canShare = typeof navigator.share === "function";
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -478,8 +685,31 @@ function DoneView({ done }: { done: Done }) {
             <Copy data-icon="inline-start" />
             {t("copy")}
           </Button>
+          {canShare && (
+            <Button
+              variant="outline"
+              onClick={() =>
+                navigator.share({ title: t("shareTitle", { code: done.code }), url: trackingUrl }).catch(() => {
+                  // Closing the share sheet rejects; nothing to do.
+                })
+              }
+            >
+              <Share2 data-icon="inline-start" />
+              {t("share")}
+            </Button>
+          )}
+          <p>
+            {t.rich("savedHere", {
+              link: (chunks) => (
+                <Link href="/me" className="text-primary underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
         </AlertDescription>
       </Alert>
+      {!done.following && <FollowForm reportId={done.id} credentials={{ token: done.token }} />}
       <Button size="lg" className="h-12 text-base" nativeButton={false} render={<Link href={`/r/${done.code}?t=${done.token}`} />}>
         {t("viewReport", { code: done.code })}
       </Button>

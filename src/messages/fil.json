@@ -72,7 +72,8 @@
       "meToos": "{count} ang nagsabing “ako rin”",
       "meToo": "Ako rin",
       "error": "Hindi naitala. Pakisubukan ulit.",
-      "different": "Ibang problema ba? Ituloy lang."
+      "continue": "Iba ang sa akin, ituloy",
+      "count": "{count} bukas na sumbong ng ganitong uri sa malapit"
     },
     "details": {
       "title": "Litrato at detalye",
@@ -84,14 +85,15 @@
       "titleHint": "Ito ang unang makikita ng mga tao sa listahan."
     },
     "photos": {
-      "add": "Magdagdag ng litrato",
       "processing": "Pinoproseso…",
       "hint": "Hanggang {max} litrato. Tinatanggal ang lokasyong nakatago sa litrato.",
       "tooMany": "Hanggang {max} litrato lang.",
       "unreadable": "Hindi mabasa ang litratong iyon. Subukan ang iba.",
       "preview": "Litrato {number}",
       "remove": "Alisin ang litrato {number}",
-      "label": "Mga litrato"
+      "label": "Mga litrato",
+      "camera": "Kumuha ng litrato",
+      "gallery": "Pumili sa gallery"
     },
     "contact": {
       "title": "Gusto mo ba ng update? (hindi kailangan)",
@@ -108,9 +110,28 @@
       "copied": "Nakopya na",
       "viewReport": "Tingnan ang sumbong {code}",
       "meTooTitle": "Naitala ang “Ako rin” mo.",
-      "meTooLead": "Mas napapansin ang problema kapag mas maraming residente ang nagsusumbong nito."
+      "meTooLead": "Mas napapansin ang problema kapag mas maraming residente ang nagsusumbong nito.",
+      "share": "Ipadala ang link sa sarili mo",
+      "shareTitle": "Ang sumbong ko {code}",
+      "savedHere": "Naka-save din ito sa device na ito sa <link>Mga sumbong ko</link>."
     },
-    "urgent": "Unahin ang kaligtasan"
+    "urgent": "Unahin ang kaligtasan",
+    "review": {
+      "title": "Suriin at ipadala",
+      "lead": "Siguraduhing tama ang lahat. Puwede mo pang baguhin ang kahit ano.",
+      "location": "Lokasyon",
+      "pinOnly": "Naka-pin sa mapa",
+      "category": "Problema",
+      "photos": "Mga litrato",
+      "details": "Pamagat at paglalarawan",
+      "noDetails": "Walang inilagay",
+      "edit": "Baguhin",
+      "editLabel": "Baguhin ang {section}"
+    },
+    "draft": {
+      "restored": "Ibinalik namin ang sumbong na hindi mo pa natatapos.",
+      "startOver": "Magsimula ulit"
+    }
   },
   "reportPage": {
     "statusExplainer": {
@@ -197,7 +218,16 @@
     "signedInAs": "Naka-sign in bilang {email}",
     "empty": "Wala ka pang naipadalang sumbong habang naka-sign in.",
     "emptyTitle": "Wala pang sumbong",
-    "cta": "Mag-sumbong"
+    "cta": "Mag-sumbong",
+    "deviceTitle": "Sa device na ito",
+    "deviceLead": "Mga sumbong na ipinadala mula sa browser na ito. Makikita ito ng sinumang gumagamit ng teleponong ito.",
+    "deviceEmpty": "Walang naka-save na sumbong sa device na ito.",
+    "deviceLoading": "Kinukuha ang mga sumbong…",
+    "forget": "Alisin ang {code} sa device na ito",
+    "accountTitle": "Sinusundan gamit ang account mo",
+    "signInTitle": "Gumagamit ng higit sa isang telepono o computer?",
+    "signInLead": "Mag-sign in gamit ang email mo para makita ang mga sinusundan mong sumbong kahit saan.",
+    "signIn": "Mag-sign in"
   },
   "about": {
     "title": "Paano gumagana ang Sumbong",

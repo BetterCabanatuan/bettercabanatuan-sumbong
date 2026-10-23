@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, X } from "lucide-react";
+import { Camera, Images, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,8 @@ function keyOf(photo: Blob) {
 
 export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (photos: Blob[]) => void }) {
   const t = useTranslations("reportForm.photos");
-  const input = useRef<HTMLInputElement>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  const gallery = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +49,8 @@ export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (p
       setError(t("unreadable"));
     } finally {
       setBusy(false);
-      if (input.current) input.current.value = "";
+      if (camera.current) camera.current.value = "";
+      if (gallery.current) gallery.current.value = "";
     }
   }
 
@@ -84,23 +86,40 @@ export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (p
           <li>
             <button
               type="button"
-              onClick={() => input.current?.click()}
+              onClick={() => camera.current?.click()}
               disabled={busy}
               className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input bg-card text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
             >
               {busy ? <Spinner /> : <Camera className="size-6" aria-hidden="true" />}
-              {busy ? t("processing") : t("add")}
+              {busy ? t("processing") : t("camera")}
             </button>
           </li>
         )}
       </ul>
+      {photos.length < MAX_PHOTOS && (
+        <Button type="button" variant="outline" className="h-11 self-start" disabled={busy} onClick={() => gallery.current?.click()}>
+          <Images data-icon="inline-start" />
+          {t("gallery")}
+        </Button>
+      )}
+      {/* On phones `capture` opens the camera directly; desktops ignore it and show the file picker. */}
       <input
-        ref={input}
+        ref={camera}
         id="photos"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="sr-only"
+        tabIndex={-1}
+        onChange={(event) => add(event.target.files)}
+      />
+      <input
+        ref={gallery}
         type="file"
         accept="image/*"
         multiple
         className="sr-only"
+        tabIndex={-1}
         onChange={(event) => add(event.target.files)}
       />
       <FieldDescription>{t("hint", { max: MAX_PHOTOS })}</FieldDescription>

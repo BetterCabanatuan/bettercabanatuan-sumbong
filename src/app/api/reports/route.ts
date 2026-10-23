@@ -140,5 +140,5 @@ export async function POST(request: Request) {
 
   if (email) after(() => notifyFollowers([reportId], "submitted", { trackingToken: token }));
 
-  return NextResponse.json({ code: data.public_code, token }, { status: 201 });
+  return NextResponse.json({ id: reportId, code: data.public_code, token }, { status: 201 });
 }

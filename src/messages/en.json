@@ -72,7 +72,8 @@
       "meToos": "{count, plural, one {# me too} other {# me too}}",
       "meToo": "Me too",
       "error": "Couldn’t record that. Please try again.",
-      "different": "Not the same problem? Just continue."
+      "continue": "Not the same, continue",
+      "count": "{count, plural, one {# open report} other {# open reports}} of this kind nearby"
     },
     "details": {
       "title": "Photos and details",
@@ -84,14 +85,15 @@
       "titleHint": "This is what people see first on the board."
     },
     "photos": {
-      "add": "Add photo",
       "processing": "Processing…",
       "hint": "Up to {max} photos. Location data inside photos is removed.",
       "tooMany": "Only {max} photos are allowed.",
       "unreadable": "That photo couldn’t be read. Try another one.",
       "preview": "Photo {number}",
       "remove": "Remove photo {number}",
-      "label": "Photos"
+      "label": "Photos",
+      "camera": "Take photo",
+      "gallery": "Choose from gallery"
     },
     "contact": {
       "title": "Get updates (optional)",
@@ -108,9 +110,28 @@
       "copied": "Copied",
       "viewReport": "View report {code}",
       "meTooTitle": "Your “Me too” was counted.",
-      "meTooLead": "More residents reporting the same problem helps it get attention."
+      "meTooLead": "More residents reporting the same problem helps it get attention.",
+      "share": "Send the link to yourself",
+      "shareTitle": "My Sumbong report {code}",
+      "savedHere": "It’s also saved on this device under <link>My reports</link>."
     },
-    "urgent": "Emergency first"
+    "urgent": "Emergency first",
+    "review": {
+      "title": "Check and send",
+      "lead": "Make sure everything is right. You can still change anything.",
+      "location": "Location",
+      "pinOnly": "Pinned on the map",
+      "category": "Problem",
+      "photos": "Photos",
+      "details": "Title and description",
+      "noDetails": "None added",
+      "edit": "Edit",
+      "editLabel": "Edit {section}"
+    },
+    "draft": {
+      "restored": "We brought back the report you hadn’t finished.",
+      "startOver": "Start over"
+    }
   },
   "reportPage": {
     "statusExplainer": {
@@ -197,7 +218,16 @@
     "signedInAs": "Signed in as {email}",
     "empty": "You haven’t sent any reports while signed in.",
     "emptyTitle": "No reports yet",
-    "cta": "Report a problem"
+    "cta": "Report a problem",
+    "deviceTitle": "On this device",
+    "deviceLead": "Reports sent from this browser. Anyone who uses this phone can see them.",
+    "deviceEmpty": "No reports are saved on this device.",
+    "deviceLoading": "Loading reports…",
+    "forget": "Remove {code} from this device",
+    "accountTitle": "Followed with your account",
+    "signInTitle": "Using more than one phone or computer?",
+    "signInLead": "Sign in with your email to see the reports you follow from anywhere.",
+    "signIn": "Sign in"
   },
   "about": {
     "title": "How Sumbong works",
