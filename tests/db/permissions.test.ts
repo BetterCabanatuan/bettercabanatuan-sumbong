@@ -2,7 +2,7 @@
 // the rules that keep a project from locking itself out.
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { as, CITY_HALL, createDb, createUser, createVolunteer, type Db } from "./harness";
+import { applyMigrations, as, CITY_HALL, createDb, createUser, createVolunteer, type Db } from "./harness";
 
 let db: Db;
 let admin: string;
@@ -217,16 +217,29 @@ describe("Volunteer Invitations", () => {
     expect(await roleOf(id)).toEqual({ name: "Volunteer", active: true });
   });
 
-  it("are not given to an unconfirmed account that already has the address", async () => {
+  it("are refused for an address that already has an unconfirmed account", async () => {
+    // Registered with a password by someone who doesn't own the address.
     const squatter = await createUser(db, "squatted@example.org", { confirmed: false });
-    const { rows } = await run(admin, `select invite_volunteer('squatted@example.org', $1) as applied`, [
+    await expect(
+      run(admin, `select invite_volunteer('squatted@example.org', $1)`, [ids.coordinatorRole]),
+    ).rejects.toThrow(/unconfirmed_account_exists/);
+    expect(await roleOf(squatter)).toBeNull();
+    expect((await db.query(`select 1 from volunteer_invitations where email = 'squatted@example.org'`)).rows).toHaveLength(0);
+
+    // The owner clicking a sign-in email confirms that account; it still gets no role.
+    await db.query(`update auth.users set email_confirmed_at = now() where id = $1`, [squatter]);
+    expect(await roleOf(squatter)).toBeNull();
+  });
+
+  it("are not taken by an account registered before the invitation and confirmed after it", async () => {
+    // As with the initial Coordinators: the invitation is written straight to the table.
+    const squatter = await createUser(db, "early@example.org", { confirmed: false });
+    await db.query(`insert into volunteer_invitations (email, role_id, created_at) values ('early@example.org', $1, now() + interval '1 second')`, [
       ids.coordinatorRole,
     ]);
-    expect(rows[0].applied).toBe(false);
+    await db.query(`update auth.users set email_confirmed_at = now() where id = $1`, [squatter]);
     expect(await roleOf(squatter)).toBeNull();
-    expect((await run(admin, `select email from volunteer_invitations`)).rows).toContainEqual({
-      email: "squatted@example.org",
-    });
+    expect((await db.query(`select 1 from volunteer_invitations where email = 'early@example.org'`)).rows).toHaveLength(1);
   });
 
   it("apply at once to an existing account", async () => {
@@ -249,6 +262,21 @@ describe("Volunteer Invitations", () => {
       const id = await createUser(db, email);
       expect(await roleOf(id), email).toEqual({ name: "Coordinator", active: true });
     }
+  });
+
+  it("are taken away from unconfirmed accounts that got a role before 20261023000100", async () => {
+    const old = await createDb({ before: "20261023000100" });
+    const unconfirmed = await createUser(old, "unconfirmed@example.org", { confirmed: false });
+    const confirmed = await createUser(old, "confirmed@example.org");
+    for (const id of [unconfirmed, confirmed]) {
+      await old.query(
+        `insert into volunteers (user_id, display_name, role_id) select $1, 'x', id from roles where name = 'Coordinator'`,
+        [id],
+      );
+    }
+    await applyMigrations(old, (file) => file >= "20261023000100");
+    const { rows } = await old.query<{ user_id: string; active: boolean }>(`select user_id, active from volunteers`);
+    expect(Object.fromEntries(rows.map((r) => [r.user_id, r.active]))).toEqual({ [unconfirmed]: false, [confirmed]: true });
   });
 });
 

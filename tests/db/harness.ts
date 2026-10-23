@@ -102,11 +102,12 @@ export async function createUser(db: Db, email: string, { confirmed = true } = {
 /** Creates an account with a Volunteer row holding the named role ("Volunteer", "Coordinator" or a custom one). */
 export async function createVolunteer(db: Db, email: string, role = "Volunteer"): Promise<string> {
   const id = await createUser(db, email);
-  await db.query(
+  const { affectedRows } = await db.query(
     `insert into public.volunteers (user_id, display_name, role_id)
      select $1, $2, id from public.roles where name = $3`,
     [id, email.split("@")[0], role],
   );
+  if (!affectedRows) throw new Error(`createVolunteer: no role named "${role}"`);
   return id;
 }
 

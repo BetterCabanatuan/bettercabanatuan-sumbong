@@ -26,7 +26,7 @@ How to read this: every claim carries the URL it came from. **Primary** means th
 
 ## 0. Verdict
 
-**For Cabanatuan: no. Nobody is doing this, properly or otherwise.**
+**For Cabanatuan: no public intermediary was found in the reviewed sources.** Cabanatuan Facebook groups could not be checked without a logged-in search (§4.11).
 - The City has no online reporting channel [CRP §5].
 - No LGU in Nueva Ecija has a reporting app in either app store (searched 2026-10-19; §4.9).
 - No Philippine non-government group runs a public board of public-space Reports that it forwards and tracks (§4).
@@ -61,13 +61,13 @@ Read from the repo on 2026-10-19. Where docs and code disagree, the code wins. T
 
 **Statuses and the status machine**
 - Six statuses: `pending_review`, `rejected`, `published`, `forwarded`, `resolved`, `reopened` (`supabase/migrations/20261018000100_schema.sql`, `report_status`).
-- The trigger `reports_before_update` allows only these transitions (`supabase/migrations/20261018000200_logic.sql`):
+- The trigger `reports_before_update` allows only these transitions (`supabase/migrations/20261018000200_logic.sql`, replaced by `20261020000200_audit_fixes_logic.sql`):
   - pending_review→published / rejected
   - published→forwarded / resolved / rejected (take-down)
-  - reopened→forwarded / resolved
-  - forwarded→resolved
+  - reopened→forwarded / resolved / rejected
+  - forwarded→resolved / rejected
   - forwarded→published (Misroute)
-  - resolved→reopened
+  - resolved→reopened / rejected
 - The trigger also stamps `reviewed_at`, `published_at`, `first_forwarded_at`, `resolved_at` and `reopened_at`, and refuses a public Report without a Responsible Office.
 - **There is no state between Forwarded and Resolved.** The model cannot tell "office hasn't answered" apart from "office answered and scheduled a fix".
 
@@ -91,7 +91,7 @@ Read from the repo on 2026-10-19. Where docs and code disagree, the code wins. T
 - An optional email or magic-link account makes them a Follower (`report_followers`; `src/app/(public)/me/page.tsx`).
 
 **Before submitting: nearby check**
-- `nearby_reports` returns open Reports within 100 m by default (clamped to 10–500 m), so the Reporter can tap "Ako rin" instead.
+- `nearby_reports` returns open Reports of the same Category within 100 m by default (clamped to 10–500 m), so the Reporter can tap "Ako rin" on one of those instead.
 
 **Me Too**
 - One per device hash (`me_toos` primary key), plus a per-IP limit (hardening migration), counted by trigger, allowed only on published, forwarded or reopened Reports (`add_me_too`).
@@ -157,7 +157,7 @@ Read from the repo on 2026-10-19. Where docs and code disagree, the code wins. T
 | Aduanku | Sinar Project + TI-Malaysia | Malaysia | Residents, site reviewers or community partners forward | Yes | (FMS) | (FMS) | Dead | Paper-only respondents forced manual relay |
 | Por Mi Barrio | DATA Uruguay (NGO) | Uruguay | City complaint system, by agreement | Yes | (FMS) | Public stats page | Dead; domain now a gambling site | Stats page built credibility |
 | **BudgIT Tracka** | BudgIT (NGO), paid staff + volunteer Community Champions | Nigeria | Letters to legislators/MDAs, FOI, anti-graft agencies, town halls | Project tracker | — | Scheduled site re-visits | Yes | Letters + scheduled follow-up; only 2.1% FOI response |
-| I Change My City | Janaagraha (NGO) | India | Fed into BBMP's Sahaaya system | Yes | Vote, "follow the engineer" | Email updates | Dormant (app last updated 2023) | Collapsed when its one government link broke |
+| I Change My City | Janaagraha (NGO) | India | Fed into BBMP's Sahaaya system | Yes | Vote, "follow the engineer" | Email updates | Dormant (app last updated 2023) | Collapsed after its one government link changed (our inference, §5.5) |
 | Colab | Company (B2G SaaS) | Brazil | Paid city-hall integration | Yes | Support, comment, follow | Yes | Yes | Shows where intermediaries drift: selling to cities |
 | Reclame Aqui | Company | Brazil | Public pressure: response-rate reputation score | Yes | — | Respondent replies publicly | Yes | Pressure on respondents who never joined |
 | Mängelmelder | Company | Germany | Municipality opts in | Yes | ? | Often none: ~21% solved | Yes | Non-responding offices make the board look broken |
@@ -275,7 +275,7 @@ Read from the repo on 2026-10-19. Where docs and code disagree, the code wins. T
 - *We beat it:* public visibility; minimal personal data.
 
 **8888**
-- *Beats us:* legal teeth (72 hours, non-extendible, administrative sanctions) and LGU coverage.
+- *Beats us:* legal teeth on paper (72 hours, non-extendible, administrative sanctions in the law; enforcement is unclear, since COA found the manual had no provisions to apply them, §4.6) and LGU coverage.
 - *We beat it:* transparency. No 8888 ticket is public, and "resolution" counts tickets acted upon (§4.6).
 
 **Tulfo**

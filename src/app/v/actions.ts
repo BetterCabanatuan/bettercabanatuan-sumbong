@@ -29,6 +29,8 @@ const ERRORS: Record<string, string> = {
   name_required: "Give the role a name.",
   invalid_email: "Enter a valid email address.",
   unknown_role: "Choose a role.",
+  unconfirmed_account_exists:
+    "This address has an unconfirmed account that someone else may have registered. Delete it in Supabase Auth, then invite again.",
   no_status_change: "This Report already has that status. Someone else may have just changed it; reload the page.",
   reopen_window_closed: "A Report can only be reopened within 30 days of being Resolved.",
   sent_before_draft: "The send time can't be earlier than the day this Digest was drafted.",

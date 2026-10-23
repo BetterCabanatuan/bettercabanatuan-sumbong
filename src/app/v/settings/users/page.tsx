@@ -80,8 +80,8 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
           <CardHeader>
             <CardTitle>Invite someone</CardTitle>
             <CardDescription>
-              They get an email to sign in, and the role applies the moment their account exists. Existing accounts get
-              the role at once.
+              They get an email to sign in. The role applies once they confirm their address; accounts with a
+              confirmed address get it at once.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -118,7 +118,7 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             <h2 id="pending-heading" className="text-lg font-semibold">
               Waiting to sign in
             </h2>
-            <p className="text-sm text-muted-foreground">Invitations whose account doesn’t exist yet.</p>
+            <p className="text-sm text-muted-foreground">Invitations waiting for the address to be confirmed.</p>
           </div>
           <DataView
             view={view}

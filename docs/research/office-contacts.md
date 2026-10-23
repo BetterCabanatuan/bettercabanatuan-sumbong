@@ -92,7 +92,7 @@ Seed `short_name = 'CENRO'`.
 | Who acts on a complaint | Administrative Division receives it; the Enforcement and Regulatory Division (ERD), Ecological Management Division (EMD) or **Solid Waste Management Division (SWMD) Officer** inspects within 1 day, coordinating with barangay officials; the Head, CCENRO chairs a technical conference if the parties don't agree | verified | Charter pp.140-141 |
 | Head | "Head, CCENRO" / "City ENRO" (name not found) | verified (title) | Charter p.141 |
 | Facebook | None found | — | Search found none |
-| Not to confuse with | DENR's national **CENRO Cabanatuan City**, Capitol Compound, (044) 940-9695 / 411-1496 / 456-2234. This is a national DENR office, not the city's CCENRO. | verified (DENR directory, per BC page; not re-fetched) | BC `content/services/environment/file-an-environmental-complaint.md` @7b8d528 citing [DENR R3 directory](https://r3.denr.gov.ph/index.php/about-us/denr-directory) |
+| Not to confuse with | DENR's national **CENRO Cabanatuan City**, Capitol Compound, (044) 940-9695 / 411-1496 / 456-2234. This is a national DENR office, not the city's CCENRO. | community-listed (BC cites the DENR directory, which was not re-fetched) | BC `content/services/environment/file-an-environmental-complaint.md` @7b8d528 citing [DENR R3 directory](https://r3.denr.gov.ph/index.php/about-us/denr-directory) |
 
 ## 4. Office of the City Mayor and the complaint desk
 
@@ -194,7 +194,7 @@ Names and PSGC codes come from `supabase/data/cabanatuan-barangays.geojson` (PSA
 | Balite | 0304903008 | — | — | — | — |
 | Bangad | 0304903009 | — | — | — | — |
 | Bantug Bulalo | 0304903010 | — | — | — | — |
-| Bantug Norte | 0304903011 | — | 0917-847-6075 (Punong Barangay, unverified) | — | [BD]¹ |
+| Bantug Norte | 0304903011 | — | Punong Barangay mobile listed (unverified; number not reproduced here) | — | [BD]¹ |
 | Barlis | 0304903012 | — | — | — | — |
 | Barrera District | 0304903013 | — | — | — | — |
 | Bernardo District | 0304903015 | — | — | — | — |
@@ -204,7 +204,7 @@ Names and PSGC codes come from `supabase/data/cabanatuan-barangays.geojson` (PSA
 | Caalibangbangan | 0304903019 | — | — | — | — |
 | Cabu | 0304903020 | — | — | — | — |
 | Calawagan | 0304903040 | — | — | — | — |
-| Campo Tinio | 0304903022 | — | 0968-855-9743 (Punong Barangay, unverified) | — | [BD]¹ |
+| Campo Tinio | 0304903022 | — | Punong Barangay mobile listed (unverified; number not reproduced here) | — | [BD]¹ |
 | Caridad | 0304903096 | — | — | — | — |
 | Caudillo | 0304903026 | — | — | — | — |
 | Cinco-Cinco | 0304903024 | — | — | — | — |
@@ -239,7 +239,7 @@ Names and PSGC codes come from `supabase/data/cabanatuan-barangays.geojson` (PSA
 | Mayapyap Sur | 0304903053 | — | — | — | — |
 | Melojavilla | 0304903054 | — | — | — | — |
 | Nabao | 0304903087 | — | — | — | — |
-| Obrero | 0304903055 | — | 0975-012-2570 (Punong Barangay, unverified) | — | [BD]¹ |
+| Obrero | 0304903055 | — | Punong Barangay mobile listed (unverified; number not reproduced here) | — | [BD]¹ |
 | Padre Burgos | 0304903088 | — | — | — | — |
 | Padre Crisostomo | 0304903056 | — | — | — | — |
 | Pagas | 0304903057 | — | — | — | — |
@@ -274,7 +274,7 @@ Names and PSGC codes come from `supabase/data/cabanatuan-barangays.geojson` (PSA
 | Villa Ofelia-Caridad | 0304903085 | — | — | — | — |
 | Zulueta District | 0304903086 | — | — | — | — |
 
-¹ [BD] = search-result extract of `https://www.barangaydirectory.com/barangay/city-of-cabanatuan/<slug>` (campo-tinio, obrero, bantug-norte), retrieved 2026-10-19; the page itself did not load. Status **unverified**.
+¹ [BD] = search-result extract of `https://www.barangaydirectory.com/barangay/city-of-cabanatuan/<slug>` (campo-tinio, obrero, bantug-norte), retrieved 2026-10-19; the page itself did not load. Status **unverified**. The numbers are personal mobiles and are not reproduced here.
 
 The letter address in the seed (`The Punong Barangay / Barangay {barangay} / Cabanatuan City, Nueva Ecija`) remains the only channel we can support for every barangay.
 
@@ -340,7 +340,7 @@ Current rows are from `supabase/migrations/20261018000500_reference_data.sql`. P
 | `channel` | `Request letter addressed to the City Mayor, filed at the Office of the Mayor (Citizen's Charter: road clearing, de-clogging, lighting repair).` | `Request letter addressed to the City Mayor, filed at the Office of the City Mayor (email cabanatuan.lgu@gmail.com is the Mayor's Office address; the CEO has none), with an advance copy to the CEO (Citizen's Charter pp.143-146: road clearing, de-clogging, lighting repair).` | Says plainly whose email it is, and adds the Charter's "advance copy to the office" step. |
 | `phone` | `0919-081-3694` | `0919-081-3694` (no change) | Confirmed by Charter p.343 and City-Contacts. It is the CEO's line, not the Mayor's (0919-081-3749). |
 | `address` | `City Hall, Cabanatuan City` | `CEO Bldg., City Hall Compound, Kapitan Pepe Subd. Phase II, Cabanatuan City 3100` | Charter p.343. The CEO has its own building in the compound. |
-| `letter_addressee` | `E'The Honorable City Mayor\nCity Government of Cabanatuan\nCity Hall, Cabanatuan City, Nueva Ecija'` | `E'Hon. Myca Elizabeth R. Vergara\nCity Mayor, City Government of Cabanatuan\n2nd Floor, City Hall, Kapitan Pepe Subd. Phase II\nCabanatuan City, Nueva Ecija 3100'` | Full Charter address (p.342) and the incumbent's name (City-APP). If you'd rather not hard-code a name that changes in 2028, keep `The Honorable City Mayor` as line 1 and change only the address lines. |
+| `letter_addressee` | `E'The Honorable City Mayor\nCity Government of Cabanatuan\nCity Hall, Cabanatuan City, Nueva Ecija'` | `E'The Honorable City Mayor\nCity Government of Cabanatuan\n2nd Floor, City Hall, Kapitan Pepe Subd. Phase II\nCabanatuan City, Nueva Ecija 3100'` | Full Charter address (p.342). The title, not the incumbent's name (Hon. Myca Elizabeth R. Vergara, per City-APP), so the row doesn't go stale in 2028. |
 | `letter_attention` | `City Engineer's Office (Construction & Maintenance / Electrical Division)` | `Office of the City Engineer (Construction and Maintenance Division / Electrical Division)` | Charter wording (pp.143-146, 343). Cosmetic. |
 
 ### `CENRO`
@@ -360,10 +360,10 @@ Current rows are from `supabase/migrations/20261018000500_reference_data.sql`. P
 | Field | Current value | Proposed value | Reason |
 | --- | --- | --- | --- |
 | `channel` | `Letter to CELCOR customer service (franchise holder for electric distribution in the city, RA 9968).` | `Email or letter to CELCOR customer service (franchise holder for electric distribution in the city, RA 9968). Live, sparking or fallen wires: CELCOR 24/7 hotlines, not a Digest.` | CELCOR publishes an email and 24/7 lines (celcor.com.ph). |
-| `letter_addressee` | `E'Cabanatuan Electric Corporation (CELCOR)\nMaharlika Highway, Brgy. Bitas\nCabanatuan City, Nueva Ecija'` | `E'Engr. Villamor G. Dagamac\nChief Executive Officer\nCabanatuan Electric Corporation (CELCOR)\nMaharlika Highway, Brgy. Bitas\nCabanatuan City, Nueva Ecija 3100'` | Head from DOE-DU and CELCOR's site; ZIP 3100 from both. Optional: drop the first two lines to avoid a hard-coded name. |
+| `letter_addressee` | `E'Cabanatuan Electric Corporation (CELCOR)\nMaharlika Highway, Brgy. Bitas\nCabanatuan City, Nueva Ecija'` | `E'The Chief Executive Officer\nCabanatuan Electric Corporation (CELCOR)\nMaharlika Highway, Brgy. Bitas\nCabanatuan City, Nueva Ecija 3100'` | ZIP 3100 from DOE-DU and CELCOR's site. The title, not the name (Engr. Villamor G. Dagamac, per DOE-DU and CELCOR), so it survives a change of CEO. |
 | `letter_attention` | `Engineering / Line Maintenance` | `Engineering & Design Services Department` | The department name CELCOR itself uses (CELCOR news text). Its head is Engr. Bernie Laguni. |
 | `email` | `null` | `ask.celcor@gmail.com` | CELCOR Contact Us and FAQ; DOE-DU (Dec 2024). |
-| `phone` | `null` | `(044) 463-7398 / 600-2414 / 463-0811 / 463-0505; Globe 0966-980-2280; Smart 0968-246-0131 (24/7)` | CELCOR FAQ "24/7 Hotlines". If the column should hold one number, use `(044) 463-0811`, which appears on both CELCOR's site and DOE-DU. |
+| `phone` | `null` | `(044) 463-0811` | The one line on both CELCOR's site and DOE-DU. CELCOR's FAQ "24/7 Hotlines" also lists (044) 463-7398 / 600-2414 / 463-0505, Globe 0966-980-2280 and Smart 0968-246-0131; the mobiles belong in the urgent notice below. |
 | `address` | `Maharlika Highway, Brgy. Bitas, Cabanatuan City (verify)` | `Along Maharlika Highway, Brgy. Bitas, Cabanatuan City, Nueva Ecija 3100` | Verified by CELCOR Contact Us and DOE-DU; remove "(verify)". |
 
 Related, in `categories.urgent_notice_*` for `poles-wires` (not a `responsible_offices` field): "call CDRRMO at 0908-881-1010 or CELCOR right now" could name a CELCOR number. Suggest `CELCOR (Globe 0966-980-2280 / Smart 0968-246-0131)`. Resident-facing copy also needs the `fil` text updated, and both message files must stay in sync if the notice moves to `src/messages`.
@@ -372,10 +372,10 @@ Related, in `categories.urgent_notice_*` for `poles-wires` (not a `responsible_o
 
 | Field | Current value | Proposed value | Reason |
 | --- | --- | --- | --- |
-| `email` | `null` | `tolentino.cyrone_kevin@dpwh.gov.ph` | District Engineer's address on DPWH's office page. It is personal to the OIC, so re-check it when the DE changes. Alternative: `cruz.leonora@dpwh.gov.ph` (ADE OIC). |
+| `email` | `null` | `tolentino.cyrone_kevin@dpwh.gov.ph` | District Engineer's address on DPWH's office page. It is personal to the OIC, so re-check it when the DE changes. DPWH also lists `cruz.leonora@dpwh.gov.ph` (ADE OIC). |
 | `phone` | `(044) 311-8476` | `(044) 311-8476` (no change) | Confirmed by DPWH. |
 | `address` | `Brgy. San Isidro, Cabanatuan City` | `Brgy. San Isidro, Cabanatuan City, Nueva Ecija` | DPWH wording. Cosmetic. |
-| `letter_addressee` | `E'The District Engineer\nDPWH Nueva Ecija 2nd District Engineering Office\nBrgy. San Isidro, Cabanatuan City, Nueva Ecija'` | `E'DE Cyrone Kevin R. Tolentino\nDistrict Engineer (OIC)\nDPWH Nueva Ecija 2nd District Engineering Office\nBrgy. San Isidro, Cabanatuan City, Nueva Ecija'` | Optional; the name is from DPWH. Keeping "The District Engineer" is safer if the OIC changes. |
+| `letter_addressee` | `E'The District Engineer\nDPWH Nueva Ecija 2nd District Engineering Office\nBrgy. San Isidro, Cabanatuan City, Nueva Ecija'` | `E'The District Engineer\nDPWH Nueva Ecija 2nd District Engineering Office\nBrgy. San Isidro, Cabanatuan City, Nueva Ecija'` (no change) | The OIC is DE Cyrone Kevin R. Tolentino (DPWH), but the title survives a change of OIC. |
 
 ### `BARANGAY`
 
