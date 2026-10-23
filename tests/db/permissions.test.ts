@@ -231,6 +231,18 @@ describe("Volunteer Invitations", () => {
     expect(await roleOf(squatter)).toBeNull();
   });
 
+  it("can be sent again after the invitation email created the account", async () => {
+    await run(admin, `select invite_volunteer('resend@example.org', $1)`, [ids.volunteerRole]);
+    // Supabase's invite link creates an unconfirmed account for the address.
+    const id = await createUser(db, "resend@example.org", { confirmed: false });
+
+    const { rows } = await run(admin, `select invite_volunteer('resend@example.org', $1) as applied`, [ids.coordinatorRole]);
+    expect(rows[0].applied).toBe(false);
+
+    await db.query(`update auth.users set email_confirmed_at = now() where id = $1`, [id]);
+    expect(await roleOf(id)).toEqual({ name: "Coordinator", active: true });
+  });
+
   it("are not taken by an account registered before the invitation and confirmed after it", async () => {
     // As with the initial Coordinators: the invitation is written straight to the table.
     const squatter = await createUser(db, "early@example.org", { confirmed: false });
