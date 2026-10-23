@@ -2,6 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { GeoJSON, MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import type { GeoJsonObject } from "geojson";
@@ -22,7 +23,20 @@ const pinIcon = L.divIcon({
 });
 
 function ClickToPlace({ onChange }: { onChange: (value: LatLng) => void }) {
-  useMapEvents({ click: (event) => onChange({ lat: event.latlng.lat, lng: event.latlng.lng }) });
+  const t = useTranslations("reportForm.location");
+  const map = useMapEvents({
+    click: (event) => onChange({ lat: event.latlng.lat, lng: event.latlng.lng }),
+    // Without a mouse or location access, pan with the arrow keys and press Enter to pin the center.
+    keydown: (event) => {
+      if (event.originalEvent.key !== "Enter") return;
+      event.originalEvent.preventDefault();
+      const { lat, lng } = map.getCenter();
+      onChange({ lat, lng });
+    },
+  });
+  useEffect(() => {
+    map.getContainer().setAttribute("aria-label", t("keyboard"));
+  }, [map, t]);
   return null;
 }
 

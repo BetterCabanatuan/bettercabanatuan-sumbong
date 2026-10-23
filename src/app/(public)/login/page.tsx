@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { safeNextPath } from "@/lib/redirect";
 import { LoginForm } from "./login-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const params = await searchParams;
   const t = await getTranslations("login");
-  const next = typeof params.next === "string" ? params.next : "/me";
+  const next = safeNextPath(params.next, "/me");
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-col gap-4 px-4 py-10">

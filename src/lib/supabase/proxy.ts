@@ -28,7 +28,7 @@ export async function updateSession(request: NextRequest) {
   if (!data?.claims && isVolunteerPath(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.search = `?next=${encodeURIComponent(request.nextUrl.pathname)}`;
+    url.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
     return NextResponse.redirect(url);
   }
 

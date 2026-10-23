@@ -60,7 +60,7 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
               <CardTitle>{t("how.title")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm text-white/85">
+              <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm text-navy-foreground/85">
                 <li>{t("how.step1")}</li>
                 <li>{t("how.step2")}</li>
                 <li>{t("how.step3")}</li>

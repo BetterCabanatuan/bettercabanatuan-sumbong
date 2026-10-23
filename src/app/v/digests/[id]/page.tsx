@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { ProofUpload } from "@/components/volunteer/proof-upload";
 import { RemoveFromDigest } from "@/components/volunteer/remove-from-digest";
+import { can, requireVolunteer } from "@/lib/auth";
 import { getDigestBundle } from "@/lib/digests";
 import { PROOFS_BUCKET } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
@@ -30,6 +31,7 @@ function manilaNow() {
 
 export default async function DigestPage({ params }: PageProps<"/v/digests/[id]">) {
   const { id } = await params;
+  const me = await requireVolunteer();
   const bundle = await getDigestBundle(id);
   if (!bundle) notFound();
   const { digest, reports, office, barangay, categories, barangays } = bundle;
@@ -48,10 +50,12 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
           {sent ? "Sent" : "Draft"} Digest · {office.short_name}
           {barangay && ` · Brgy. ${barangay.name}`}
         </h1>
-        <Button nativeButton={false} render={<Link href={`/v/digests/${digest.id}/letter`} />} className="ml-auto">
-          <Printer data-icon="inline-start" />
-          Printable letter
-        </Button>
+        {can(me, "digests.print") && (
+          <Button nativeButton={false} render={<Link href={`/v/digests/${digest.id}/letter`} />} className="ml-auto">
+            <Printer data-icon="inline-start" />
+            Printable letter
+          </Button>
+        )}
       </div>
       <p className="text-muted-foreground">
         Channel: <span className="text-foreground">{office.channel}</span>
@@ -77,7 +81,7 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
                 </TableCell>
                 <TableCell className="max-w-72 truncate">{r.title ?? categories.find((c) => c.id === r.category_id)?.name_en}</TableCell>
                 <TableCell className="text-muted-foreground">{barangays.find((b) => b.id === r.barangay_id)?.name}</TableCell>
-                <TableCell className="pr-4 text-right">{!sent && <RemoveFromDigest digestId={digest.id} reportId={r.id} />}</TableCell>
+                <TableCell className="pr-4 text-right">{!sent && can(me, "digests.edit") && <RemoveFromDigest digestId={digest.id} reportId={r.id} />}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -99,62 +103,68 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
               <Button variant="outline" nativeButton={false} render={<a href={proofUrl} target="_blank" rel="noreferrer" />}>
                 View Proof of Receipt
               </Button>
-            ) : (
+            ) : can(me, "digests.send") ? (
               <ProofUpload digestId={digest.id} />
+            ) : (
+              <p className="text-sm text-muted-foreground">No Proof of Receipt yet.</p>
             )}
           </CardContent>
         </Card>
       ) : (
         <div className="grid items-start gap-4 lg:grid-cols-2">
-          <Card>
-            <ActionForm
-              action={sendDigest.bind(null, digest.id)}
-              className="contents"
-              success="Logged. The Reports are now Forwarded and Followers were notified."
-            >
-              <CardHeader>
-                <CardTitle>Log the send</CardTitle>
-                <CardDescription>Only after it actually went out. Its Reports become Forwarded and Followers get an email.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="channel">How was it sent?</FieldLabel>
-                    <NativeSelect id="channel" name="channel" defaultValue="letter">
-                      {CHANNELS.map(([value, label]) => (
-                        <NativeSelectOption key={value} value={value}>
-                          {label}
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="channel_detail">Details</FieldLabel>
-                    <Input id="channel_detail" name="channel_detail" maxLength={300} />
-                    <FieldDescription>e.g. “Received by Mayor’s Office receiving clerk”, an email subject, a reference number.</FieldDescription>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="sent_at">Sent at (Manila time)</FieldLabel>
-                    <Input id="sent_at" name="sent_at" type="datetime-local" defaultValue={manilaNow()} max={manilaNow()} />
-                  </Field>
-                </FieldGroup>
-              </CardContent>
-              <CardFooter>
-                <SubmitButton>Log send</SubmitButton>
-              </CardFooter>
-            </ActionForm>
-          </Card>
-          <Card>
-            <ActionForm action={discardDigest.bind(null, digest.id)} className="contents">
-              <CardHeader>
-                <CardTitle>Discard draft</CardTitle>
-                <CardDescription>Its Reports go back to waiting for the next Digest.</CardDescription>
-              </CardHeader>
-              <CardFooter>
-                <SubmitButton variant="outline">Discard</SubmitButton>
-              </CardFooter>
-            </ActionForm>
-          </Card>
+          {can(me, "digests.send") && (
+            <Card>
+              <ActionForm
+                action={sendDigest.bind(null, digest.id)}
+                className="contents"
+                success="Logged. The Reports are now Forwarded and Followers were notified."
+              >
+                <CardHeader>
+                  <CardTitle>Log the send</CardTitle>
+                  <CardDescription>Only after it actually went out. Its Reports become Forwarded and Followers get an email.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FieldGroup>
+                    <Field>
+                      <FieldLabel htmlFor="channel">How was it sent?</FieldLabel>
+                      <NativeSelect id="channel" name="channel" defaultValue="letter">
+                        {CHANNELS.map(([value, label]) => (
+                          <NativeSelectOption key={value} value={value}>
+                            {label}
+                          </NativeSelectOption>
+                        ))}
+                      </NativeSelect>
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="channel_detail">Details</FieldLabel>
+                      <Input id="channel_detail" name="channel_detail" maxLength={300} />
+                      <FieldDescription>e.g. “Received by Mayor’s Office receiving clerk”, an email subject, a reference number.</FieldDescription>
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="sent_at">Sent at (Manila time)</FieldLabel>
+                      <Input id="sent_at" name="sent_at" type="datetime-local" defaultValue={manilaNow()} max={manilaNow()} />
+                    </Field>
+                  </FieldGroup>
+                </CardContent>
+                <CardFooter>
+                  <SubmitButton>Log send</SubmitButton>
+                </CardFooter>
+              </ActionForm>
+            </Card>
+          )}
+          {can(me, "digests.delete") && (
+            <Card>
+              <ActionForm action={discardDigest.bind(null, digest.id)} className="contents">
+                <CardHeader>
+                  <CardTitle>Discard draft</CardTitle>
+                  <CardDescription>Its Reports go back to waiting for the next Digest.</CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <SubmitButton variant="outline">Discard</SubmitButton>
+                </CardFooter>
+              </ActionForm>
+            </Card>
+          )}
         </div>
       )}
     </>

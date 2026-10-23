@@ -10,13 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { ReportFacts } from "@/components/volunteer/report-facts";
 import { ResolveForm } from "@/components/volunteer/resolve-form";
+import { can, requireVolunteer } from "@/lib/auth";
 import { byId, getBarangays, getCategories, getOffices, getReportById, getReportDetails } from "@/lib/data";
 import { publicPhotoUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
-import type { ReportEvent } from "@/lib/types";
+import { PUBLIC_STATUSES, type ReportEvent } from "@/lib/types";
 
 export default async function VolunteerReportPage({ params }: PageProps<"/v/reports/[id]">) {
   const { id } = await params;
+  const me = await requireVolunteer();
   const report = await getReportById(id);
   if (!report) notFound();
 
@@ -69,9 +71,11 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
       )}
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
-        {["published", "forwarded", "reopened"].includes(report.status) && <ResolveForm reportId={report.id} />}
+        {can(me, "reports.edit") && ["published", "forwarded", "reopened"].includes(report.status) && (
+          <ResolveForm reportId={report.id} />
+        )}
 
-        {report.status === "forwarded" && (
+        {can(me, "reports.edit") && report.status === "forwarded" && (
           <Card>
             <ActionForm
               action={misrouteReport.bind(null, report.id)}
@@ -114,7 +118,7 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
           </Card>
         )}
 
-        {report.status === "resolved" && (
+        {can(me, "reports.edit") && report.status === "resolved" && (
           <Card>
             <ActionForm action={reopenReport.bind(null, report.id)} className="contents" success="Reopened.">
               <CardHeader>
@@ -133,7 +137,7 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
           </Card>
         )}
 
-        {report.status === "published" && (
+        {can(me, "reports.archive") && PUBLIC_STATUSES.includes(report.status) && (
           <Card>
             <ActionForm action={rejectReport.bind(null, report.id)} className="contents">
               <input type="hidden" name="preset" value="Taken down" />

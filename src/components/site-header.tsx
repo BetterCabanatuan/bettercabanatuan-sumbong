@@ -4,16 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { BrandMark, FlagStripe } from "@/components/brand-mark";
 import { LanguageToggle } from "@/components/language-toggle";
 import { Button } from "@/components/ui/button";
-import { getCurrentUser, getVolunteer } from "@/lib/auth";
+import { getVolunteer } from "@/lib/auth";
 
 export async function SiteHeader() {
   const t = await getTranslations("nav");
-  const [user, volunteer] = await Promise.all([getCurrentUser(), getVolunteer()]);
-  const account = volunteer
-    ? { href: "/v", label: t("volunteer") }
-    : user
-      ? { href: "/me", label: t("myReports") }
-      : { href: "/login", label: t("signIn") };
+  const volunteer = await getVolunteer();
+  // Signed-out residents also go to /me: it lists the Reports saved on this device and offers sign-in.
+  const account = volunteer ? { href: "/v", label: t("volunteer") } : { href: "/me", label: t("myReports") };
 
   return (
     <header className="no-print sticky top-0 z-40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85">

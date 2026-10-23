@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, X } from "lucide-react";
+import { Camera, Images, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,32 @@ import { Spinner } from "@/components/ui/spinner";
 import { toUploadableJpeg } from "@/lib/image";
 import { MAX_PHOTOS } from "@/lib/storage";
 
+// Stable per-Blob keys: adding or removing a photo mints new object URLs, but must not remount
+// (and replay the entrance of) the thumbnails that stayed.
+const keys = new WeakMap<Blob, number>();
+let nextKey = 0;
+function keyOf(photo: Blob) {
+  let key = keys.get(photo);
+  if (key === undefined) keys.set(photo, (key = nextKey++));
+  return key;
+}
+
 export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (photos: Blob[]) => void }) {
   const t = useTranslations("reportForm.photos");
-  const input = useRef<HTMLInputElement>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  const gallery = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const previews = useMemo(() => photos.map((p) => URL.createObjectURL(p)), [photos]);
-  useEffect(() => () => previews.forEach((url) => URL.revokeObjectURL(url)), [previews]);
+  // Each URL is revoked once its thumbnail has loaded. Revoking in an effect cleanup broke the
+  // previews under StrictMode, which runs the cleanup before the images load.
+  const urls = useMemo(() => photos.map((p) => URL.createObjectURL(p)), [photos]);
+
+  // Converting takes a moment; a photo removed meanwhile must stay removed.
+  const latest = useRef(photos);
+  useEffect(() => {
+    latest.current = photos;
+  }, [photos]);
 
   async function add(files: FileList | null) {
     if (!files?.length) return;
@@ -25,13 +43,14 @@ export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (p
     try {
       const room = MAX_PHOTOS - photos.length;
       const converted = await Promise.all(Array.from(files).slice(0, room).map((f) => toUploadableJpeg(f)));
-      onChange([...photos, ...converted]);
+      onChange([...latest.current, ...converted].slice(0, MAX_PHOTOS));
       if (files.length > room) setError(t("tooMany", { max: MAX_PHOTOS }));
     } catch {
       setError(t("unreadable"));
     } finally {
       setBusy(false);
-      if (input.current) input.current.value = "";
+      if (camera.current) camera.current.value = "";
+      if (gallery.current) gallery.current.value = "";
     }
   }
 
@@ -39,10 +58,18 @@ export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (p
     <Field data-invalid={error ? true : undefined}>
       <FieldLabel htmlFor="photos">{t("label")}</FieldLabel>
       <ul className="grid grid-cols-3 gap-2">
-        {previews.map((url, i) => (
-          <li key={url} className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+        {photos.map((photo, i) => (
+          <li
+            key={keyOf(photo)}
+            className="relative aspect-square overflow-hidden rounded-lg bg-muted transition-[opacity,scale] duration-200 ease-out starting:scale-96 starting:opacity-0 motion-reduce:starting:scale-100"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
-            <img src={url} alt={t("preview", { number: i + 1 })} className="size-full object-cover" />
+            <img
+              src={urls[i]}
+              alt={t("preview", { number: i + 1 })}
+              onLoad={() => URL.revokeObjectURL(urls[i])}
+              className="size-full object-cover"
+            />
             <Button
               type="button"
               size="icon-sm"
@@ -59,23 +86,40 @@ export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (p
           <li>
             <button
               type="button"
-              onClick={() => input.current?.click()}
+              onClick={() => camera.current?.click()}
               disabled={busy}
               className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input bg-card text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
             >
               {busy ? <Spinner /> : <Camera className="size-6" aria-hidden="true" />}
-              {busy ? t("processing") : t("add")}
+              {busy ? t("processing") : t("camera")}
             </button>
           </li>
         )}
       </ul>
+      {photos.length < MAX_PHOTOS && (
+        <Button type="button" variant="outline" className="h-11 self-start" disabled={busy} onClick={() => gallery.current?.click()}>
+          <Images data-icon="inline-start" />
+          {t("gallery")}
+        </Button>
+      )}
+      {/* On phones `capture` opens the camera directly; desktops ignore it and show the file picker. */}
       <input
-        ref={input}
+        ref={camera}
         id="photos"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="sr-only"
+        tabIndex={-1}
+        onChange={(event) => add(event.target.files)}
+      />
+      <input
+        ref={gallery}
         type="file"
         accept="image/*"
         multiple
         className="sr-only"
+        tabIndex={-1}
         onChange={(event) => add(event.target.files)}
       />
       <FieldDescription>{t("hint", { max: MAX_PHOTOS })}</FieldDescription>

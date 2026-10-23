@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardCheck, FileText, LayoutDashboard, LogOut, Mail, Settings, Tags, Building2, Users } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
@@ -17,30 +17,24 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
-const WORK = [
-  { href: "/v", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/v/review", label: "Review", icon: ClipboardCheck, badge: "pending" as const },
-  { href: "/v/reports", label: "Reports", icon: FileText },
-  { href: "/v/digests", label: "Digests", icon: Mail },
-];
-
-const SETTINGS = [
-  { href: "/v/settings/categories", label: "Categories", icon: Tags },
-  { href: "/v/settings/offices", label: "Responsible Offices", icon: Building2 },
-  { href: "/v/settings/volunteers", label: "Volunteers", icon: Users },
-];
+import { type NavItem, SETTINGS, WORK } from "@/components/volunteer/nav";
+import type { Permission } from "@/lib/types";
 
 export function VolunteerSidebar({
   displayName,
-  role,
+  roleName,
+  permissions,
   pending,
 }: {
   displayName: string;
-  role: "volunteer" | "coordinator";
+  roleName: string;
+  permissions: Permission[];
   pending: number;
 }) {
   const pathname = usePathname();
+  const allowed = (item: NavItem) => !item.permission || permissions.includes(item.permission);
+  const work = WORK.filter(allowed);
+  const settings = SETTINGS.filter(allowed);
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
 
   return (
@@ -59,7 +53,7 @@ export function VolunteerSidebar({
           <SidebarGroupLabel>Work</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {WORK.map((item) => (
+              {work.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton isActive={isActive(item.href, item.exact)} render={<Link href={item.href} />}>
                     <item.icon />
@@ -71,14 +65,14 @@ export function VolunteerSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        {role === "coordinator" && (
+        {settings.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>
-              <Settings className="mr-1" /> Coordinator
+              <Settings className="mr-1" /> Settings
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {SETTINGS.map((item) => (
+                {settings.map((item) => (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton isActive={isActive(item.href)} render={<Link href={item.href} />}>
                       <item.icon />
@@ -94,7 +88,7 @@ export function VolunteerSidebar({
       <SidebarFooter>
         <div className="flex flex-col gap-0.5 px-2 text-sm">
           <span className="font-medium">{displayName}</span>
-          <span className="text-xs text-muted-foreground capitalize">{role}</span>
+          <span className="text-xs text-muted-foreground">{roleName}</span>
         </div>
         <form action="/auth/signout" method="post">
           <SidebarMenu>

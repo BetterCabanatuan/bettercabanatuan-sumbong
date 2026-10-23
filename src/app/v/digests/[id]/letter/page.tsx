@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { requirePermission } from "@/lib/auth";
 import { getDigestBundle } from "@/lib/digests";
 import { env } from "@/lib/env";
 import { publicPhotoUrl } from "@/lib/storage";
@@ -10,6 +11,7 @@ function letterDate(sentAt: string | null) {
 
 /** The Digest as a letter to the Responsible Office, following its Citizen's Charter channel. */
 export default async function DigestLetterPage({ params }: PageProps<"/v/digests/[id]/letter">) {
+  await requirePermission("digests.print");
   const { id } = await params;
   const bundle = await getDigestBundle(id);
   if (!bundle) notFound();

@@ -16,7 +16,7 @@ export function LoginForm({ next }: { next: string }) {
 
   if (state.status === "sent") {
     return (
-      <Alert>
+      <Alert className="transition-[opacity,scale] duration-200 ease-out starting:scale-98 starting:opacity-0 motion-reduce:starting:scale-100">
         <MailCheck />
         <AlertTitle>{t("sentTitle")}</AlertTitle>
         <AlertDescription>{t("sent", { email: state.email ?? "" })}</AlertDescription>
@@ -37,6 +37,8 @@ export function LoginForm({ next }: { next: string }) {
             inputMode="email"
             autoComplete="email"
             required
+            // React resets the form after the action; this brings back what was typed on an error.
+            defaultValue={state.email}
             className="h-11 text-base md:text-sm"
             aria-invalid={state.status === "error" ? true : undefined}
           />

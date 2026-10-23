@@ -1,12 +1,12 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
+import { safeNextPath } from "@/lib/redirect";
 import { createClient } from "@/lib/supabase/server";
 
 /** Landing point for magic links and Volunteer invitations. */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
-  const rawNext = searchParams.get("next") ?? "/";
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
+  const next = safeNextPath(searchParams.get("next"));
 
   const supabase = await createClient();
   const code = searchParams.get("code");

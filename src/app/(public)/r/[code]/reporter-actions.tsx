@@ -15,6 +15,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import type { ReporterCredentials } from "@/lib/reporter-access";
 
+const confirmationEnter =
+  "transition-[opacity,scale] duration-200 ease-out starting:scale-98 starting:opacity-0 motion-reduce:starting:scale-100";
+
 export function ThreadVote({ reportId, count, open }: { reportId: string; count: number; open: boolean }) {
   const meToo = useMeToo();
   const { data: mine } = useMyMeToos();
@@ -84,7 +87,7 @@ export function ReopenForm({ reportId, credentials }: { reportId: string; creden
 
   if (done) {
     return (
-      <Card>
+      <Card className={confirmationEnter}>
         <CardHeader>
           <CardTitle>{t("done")}</CardTitle>
         </CardHeader>
@@ -145,7 +148,7 @@ export function FollowForm({ reportId, credentials }: { reportId: string; creden
 
   if (done) {
     return (
-      <Card>
+      <Card className={confirmationEnter}>
         <CardHeader>
           <CardTitle>{t("done")}</CardTitle>
         </CardHeader>

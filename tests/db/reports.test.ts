@@ -80,7 +80,19 @@ async function submit(opts: Submit = {}) {
 
 const asVolunteer = <T>(fn: Parameters<typeof as<T>>[3]) => as(db, "authenticated", volunteerId, fn);
 
+/** Clears every evidence photo as-is, standing in for the Volunteer's blur step. */
+async function clearPhotos(reportId: string) {
+  return asVolunteer((tx) =>
+    tx.query(
+      `select set_photo_review(p.id, p.original_path, false) from report_photos p
+       where p.report_id = $1 and p.kind = 'evidence'`,
+      [reportId],
+    ),
+  );
+}
+
 async function approve(reportId: string, officeId = ids.ceo, categoryId = ids.roads) {
+  await clearPhotos(reportId);
   return asVolunteer((tx) => tx.query(`select * from review_approve($1, $2, $3)`, [reportId, categoryId, officeId]));
 }
 
@@ -251,20 +263,62 @@ describe("Review", () => {
     expect((await statusOf(report.id)).status).toBe("rejected");
   });
 
-  it("hides photos until a Volunteer clears them", async () => {
+  it("refuses to approve until every photo is cleared or hidden", async () => {
+    const report = await submit({ photos: [`${randomUUID()}/1.jpg`, `${randomUUID()}/2.jpg`] });
+    const approveOnly = () =>
+      asVolunteer((tx) => tx.query(`select review_approve($1, $2, $3)`, [report.id, ids.roads, ids.ceo]));
+    const { rows } = await db.query<{ id: string }>(
+      `select id from report_photos where report_id = $1 order by sort_order`,
+      [report.id],
+    );
+
+    await expect(approveOnly()).rejects.toThrow(/photos_not_cleared/);
+    await asVolunteer((tx) => tx.query(`select set_photo_review($1, $2, false)`, [rows[0].id, `${report.id}/1-public.jpg`]));
+    await expect(approveOnly()).rejects.toThrow(/photos_not_cleared/);
+    await asVolunteer((tx) => tx.query(`select set_photo_review($1, null, true)`, [rows[1].id]));
+    await approveOnly();
+    expect((await statusOf(report.id)).status).toBe("published");
+  });
+
+  it("returns the photo's previous public path so the app can delete the old file", async () => {
     const report = await submit();
-    await approve(report.id);
+    const { rows } = await db.query<{ id: string }>(`select id from report_photos where report_id = $1`, [report.id]);
+    const review = (path: string | null, hidden: boolean) =>
+      asVolunteer((tx) =>
+        tx.query<{ previous: string | null }>(`select set_photo_review($1, $2, $3) as previous`, [rows[0].id, path, hidden]),
+      ).then((r) => r.rows[0].previous);
+
+    expect(await review(`${report.id}/a.jpg`, false)).toBeNull();
+    expect(await review(`${report.id}/b.jpg`, false)).toBe(`${report.id}/a.jpg`);
+    expect(await review(null, true)).toBe(`${report.id}/b.jpg`);
+  });
+
+  it("keeps cleared photos private until the Report is public, and never shows hidden ones", async () => {
+    const report = await submit({ photos: [`${randomUUID()}/1.jpg`, `${randomUUID()}/2.jpg`] });
     const publicPhotos = () =>
       as(db, "anon", null, (tx) => tx.query(`select id from report_photos where report_id = $1`, [report.id])).then(
         (r) => r.rows as { id: string }[],
       );
+    const { rows } = await db.query<{ id: string }>(
+      `select id from report_photos where report_id = $1 order by sort_order`,
+      [report.id],
+    );
+    await asVolunteer((tx) => tx.query(`select set_photo_review($1, $2, false)`, [rows[0].id, `${report.id}/1-public.jpg`]));
+    await asVolunteer((tx) => tx.query(`select set_photo_review($1, null, true)`, [rows[1].id]));
 
     expect(await publicPhotos()).toHaveLength(0);
-    const { rows } = await db.query<{ id: string }>(`select id from report_photos where report_id = $1`, [report.id]);
-    await asVolunteer((tx) =>
-      tx.query(`select set_photo_review($1, $2, false)`, [rows[0].id, `${report.id}/1-public.jpg`]),
-    );
-    expect(await publicPhotos()).toHaveLength(1);
+    await asVolunteer((tx) => tx.query(`select review_approve($1, $2, $3)`, [report.id, ids.roads, ids.ceo]));
+    expect((await publicPhotos()).map((p) => p.id)).toEqual([rows[0].id]);
+  });
+
+  it("refuses to move a Report into an inactive Category", async () => {
+    const report = await submit();
+    await db.query(`update categories set active = false where id = $1`, [ids.poles]);
+    try {
+      await expect(approve(report.id, ids.celcor, ids.poles)).rejects.toThrow(/unknown_category/);
+    } finally {
+      await db.query(`update categories set active = true where id = $1`, [ids.poles]);
+    }
   });
 });
 
@@ -350,6 +404,23 @@ describe("Digests", () => {
     expect((await statusOf(keep.id)).status).toBe("forwarded");
     expect((await statusOf(gone.id)).status).toBe("rejected");
   });
+
+  it("starts the Forwarded clock at a backdated send time, but not before the draft's day", async () => {
+    const report = await submit();
+    await approve(report.id, ids.dpwh);
+    const digestId = await asVolunteer((tx) =>
+      tx.query<{ id: string }>(`select create_digest($1) as id`, [ids.dpwh]),
+    ).then((r) => r.rows[0].id);
+    await db.query(`update digests set created_at = now() - interval '3 days' where id = $1`, [digestId]);
+
+    await expect(
+      asVolunteer((tx) => tx.query(`select * from send_digest($1, 'letter', null, now() - interval '5 days')`, [digestId])),
+    ).rejects.toThrow(/sent_before_draft/);
+
+    const sentAt = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    await asVolunteer((tx) => tx.query(`select * from send_digest($1, 'letter', null, $2)`, [digestId, sentAt]));
+    expect((await statusOf(report.id)).first_forwarded_at).toEqual(sentAt);
+  });
 });
 
 describe("Misroute, Resolve and Reopen", () => {
@@ -378,6 +449,57 @@ describe("Misroute, Resolve and Reopen", () => {
     expect(rows[0]).toEqual({ office_id: ids.ceo, previous_office_id: ids.dpwh });
   });
 
+  it("never moves last activity backwards on a Misroute", async () => {
+    const report = await forwardedReport(ids.dpwh);
+    await db.query(`update reports set published_at = published_at - interval '9 days' where id = $1`, [report.id]);
+    const lastActivity = () =>
+      db
+        .query<{ at: Date }>(`select last_activity_at as at from reports_view where id = $1`, [report.id])
+        .then((r) => r.rows[0].at.getTime());
+    const forwarded = await lastActivity();
+
+    await asVolunteer((tx) => tx.query(`select mark_misroute($1, $2)`, [report.id, ids.ceo]));
+    expect(await lastActivity()).toBeGreaterThanOrEqual(forwarded);
+  });
+
+  it("refuses to move a Report to the status it already has, so Followers aren't told twice", async () => {
+    const report = await forwardedReport(ids.ceo);
+    await asVolunteer((tx) => tx.query(`select resolve_report($1)`, [report.id]));
+    await expect(asVolunteer((tx) => tx.query(`select resolve_report($1)`, [report.id]))).rejects.toThrow(
+      /no_status_change/,
+    );
+    const { rows } = await db.query(
+      `select 1 from report_events where report_id = $1 and kind = 'status_changed' and to_status = 'resolved'`,
+      [report.id],
+    );
+    expect(rows).toHaveLength(1);
+  });
+
+  it("only lets a Volunteer reopen within 30 days of Resolved", async () => {
+    const report = await forwardedReport(ids.ceo);
+    await asVolunteer((tx) => tx.query(`select resolve_report($1)`, [report.id]));
+    await db.query(`update reports set resolved_at = now() - interval '31 days' where id = $1`, [report.id]);
+    await expect(asVolunteer((tx) => tx.query(`select reopen_report($1)`, [report.id]))).rejects.toThrow(
+      /reopen_window_closed/,
+    );
+  });
+
+  it("can take down a Report at any public status and stops pointing at its public photos", async () => {
+    const report = await forwardedReport(ids.ceo);
+    await asVolunteer((tx) => tx.query(`select review_reject($1, 'Names a private person')`, [report.id]));
+    expect((await statusOf(report.id)).status).toBe("rejected");
+
+    const { rows } = await db.query(`select 1 from report_photos where report_id = $1 and public_path is not null`, [
+      report.id,
+    ]);
+    expect(rows).toHaveLength(0);
+    const visible = await as(db, "anon", null, (tx) => tx.query(`select 1 from reports where id = $1`, [report.id]));
+    expect(visible.rows).toHaveLength(0);
+    await expect(
+      asVolunteer((tx) => tx.query(`select review_reject($1, 'Again')`, [report.id])),
+    ).rejects.toThrow(/cannot_reject/);
+  });
+
   it("lets a Follower reopen within 30 days of Resolved, but not after", async () => {
     const report = await forwardedReport(ids.ceo);
     await asVolunteer((tx) => tx.query(`select resolve_report($1, 'Patched')`, [report.id]));
@@ -391,6 +513,24 @@ describe("Misroute, Resolve and Reopen", () => {
     await expect(
       as(db, "service_role", null, (tx) => tx.query(`select reopen_by_follower($1)`, [report.id])),
     ).rejects.toThrow(/reopen_window_closed/);
+  });
+
+  it("adds the after photo only when the Report actually resolves", async () => {
+    const afterPhotos = (reportId: string) =>
+      db
+        .query(`select 1 from report_photos where report_id = $1 and kind = 'after'`, [reportId])
+        .then((r) => r.rows.length);
+
+    const pending = await submit();
+    await expect(
+      asVolunteer((tx) => tx.query(`select resolve_report($1, null, 'a.jpg', 'a.jpg')`, [pending.id])),
+    ).rejects.toThrow(/Invalid Report status transition/);
+    expect(await afterPhotos(pending.id)).toBe(0);
+
+    const report = await forwardedReport(ids.ceo);
+    await asVolunteer((tx) => tx.query(`select resolve_report($1, 'Patched', 'b.jpg', 'b.jpg')`, [report.id]));
+    expect((await statusOf(report.id)).status).toBe("resolved");
+    expect(await afterPhotos(report.id)).toBe(1);
   });
 
   it("keeps the first Forwarded time when a reopened Report is forwarded again", async () => {
@@ -421,6 +561,21 @@ describe("Me Too", () => {
     expect(await meToo("d2")).toBe(2);
   });
 
+  it("rate-limits Me Too by IP, but a repeat tap from the same device still succeeds", async () => {
+    const report = await submit();
+    await approve(report.id);
+    const ip = "ip-" + randomUUID();
+    const meToo = (device: string) =>
+      as(db, "service_role", null, (tx) =>
+        tx.query<{ add_me_too: number }>(`select add_me_too($1, $2, null, $3, 2)`, [report.id, device, ip]),
+      ).then((r) => r.rows[0].add_me_too);
+
+    expect(await meToo("ip-d1")).toBe(1);
+    expect(await meToo("ip-d2")).toBe(2);
+    await expect(meToo("ip-d3")).rejects.toThrow(/rate_limited/);
+    expect(await meToo("ip-d1")).toBe(2);
+  });
+
   it("finds nearby open Reports for the duplicate check", async () => {
     const report = await submit({ point: { lng: 120.9601, lat: 15.4801 } });
     await approve(report.id);
@@ -446,6 +601,22 @@ describe("privacy", () => {
       expect((await tx.query(`select * from me_toos`)).rows).toHaveLength(0);
       expect((await tx.query(`select * from report_events`)).rows).toHaveLength(0);
     });
+  });
+
+  it("lets Volunteers delete public photo files, and nobody else", async () => {
+    const name = `${randomUUID()}/photo.jpg`;
+    await db.query(`insert into storage.objects (bucket_id, name) values ('report-public', $1), ('report-originals', $1)`, [
+      name,
+    ]);
+    const resident = await createUser(db, `resident-${randomUUID()}@example.org`);
+    const remove = (userId: string, bucket: string) =>
+      as(db, "authenticated", userId, (tx) =>
+        tx.query(`delete from storage.objects where bucket_id = $1 and name = $2`, [bucket, name]),
+      ).then((r) => r.affectedRows);
+
+    expect(await remove(resident, "report-public")).toBe(0);
+    expect(await remove(volunteerId, "report-originals")).toBe(0);
+    expect(await remove(volunteerId, "report-public")).toBe(1);
   });
 
   it("only lets the service role look up users by email", async () => {
@@ -483,6 +654,22 @@ describe("privacy", () => {
       report.id,
     ]);
     expect(secrets.rows[0].ip_hash).toBeNull();
+  });
+
+  it("purges Me Too IP hashes after 30 days but keeps the Me Too", async () => {
+    const report = await submit();
+    await approve(report.id);
+    await as(db, "service_role", null, (tx) =>
+      tx.query(`select add_me_too($1, 'purge-device', null, 'purge-ip')`, [report.id]),
+    );
+    await db.query(`update me_toos set created_at = now() - interval '31 days' where report_id = $1`, [report.id]);
+
+    await db.query(`select purge_expired_personal_data()`);
+
+    const { rows } = await db.query<{ ip_hash: string | null }>(`select ip_hash from me_toos where report_id = $1`, [
+      report.id,
+    ]);
+    expect(rows).toEqual([{ ip_hash: null }]);
   });
 });
 

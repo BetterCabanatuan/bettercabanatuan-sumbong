@@ -2,7 +2,40 @@
 // `supabase gen types typescript` once a project is linked, if you prefer generated types.
 
 export type ReportStatus = "pending_review" | "rejected" | "published" | "forwarded" | "resolved" | "reopened";
-export type VolunteerRole = "volunteer" | "coordinator";
+/** An area of the Volunteer console, as a row of the permission matrix. */
+export type PermissionArea = "reports" | "digests" | "categories" | "offices" | "users" | "roles";
+/** A column of the permission matrix. Review and Send are the two verbs only one area has. */
+export type PermissionAction = "view" | "add" | "edit" | "delete" | "archive" | "print" | "export" | "review" | "send";
+export type Permission =
+  | "reports.view"
+  | "reports.review"
+  | "reports.edit"
+  | "reports.archive"
+  | "reports.export"
+  | "digests.view"
+  | "digests.add"
+  | "digests.edit"
+  | "digests.delete"
+  | "digests.send"
+  | "digests.print"
+  | "digests.export"
+  | "categories.view"
+  | "categories.add"
+  | "categories.edit"
+  | "categories.archive"
+  | "offices.view"
+  | "offices.add"
+  | "offices.edit"
+  | "offices.archive"
+  | "users.view"
+  | "users.add"
+  | "users.edit"
+  | "users.archive"
+  | "users.export"
+  | "roles.view"
+  | "roles.add"
+  | "roles.edit"
+  | "roles.delete";
 export type QuestionKind = "text" | "yes_no" | "choice";
 export type OfficeScope = "citywide" | "per_barangay";
 export type DigestChannel = "letter" | "text_line" | "email" | "in_person" | "other";
@@ -76,8 +109,44 @@ export interface Barangay {
 export interface Volunteer {
   user_id: string;
   display_name: string;
-  role: VolunteerRole;
+  role_id: string | null;
   active: boolean;
+  created_at: string;
+}
+
+export interface PermissionInfo {
+  key: Permission;
+  resource: PermissionArea;
+  action: PermissionAction;
+  label: string;
+  description: string;
+  sort_order: number;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string | null;
+  permissions: Permission[];
+}
+
+/** An account as returned by `list_users`: a Reporter account, or a Volunteer with their role. */
+export interface UserAccount {
+  user_id: string;
+  email: string | null;
+  created_at: string;
+  last_sign_in_at: string | null;
+  display_name: string | null;
+  role_id: string | null;
+  role_name: string | null;
+  active: boolean;
+  total: number;
+}
+
+export interface VolunteerInvitation {
+  email: string;
+  role_id: string;
+  display_name: string | null;
   created_at: string;
 }
 

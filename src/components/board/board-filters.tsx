@@ -3,7 +3,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
@@ -15,12 +15,23 @@ import type { Locale } from "@/lib/types";
 import { CategoryIcon } from "@/components/category-icon";
 import type { BoardLookups } from "./types";
 
+// Shared by every board control (the filter rail and sheet, the sort and view toggles): the URL,
+// and so `filters`, only catches up once a navigation commits. Building on the latest request
+// stops a quick second change from dropping the first.
+let requested: BoardFilters | null = null;
+
 export function useBoardNavigation(filters: BoardFilters) {
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
-  const update = (patch: Partial<BoardFilters>) =>
-    startTransition(() => router.replace(`${pathname}${boardFiltersToSearch({ ...filters, ...patch })}`, { scroll: false }));
+  useEffect(() => {
+    requested = null;
+  }, [filters]);
+  const update = (patch: Partial<BoardFilters>) => {
+    const next = { ...(requested ?? filters), ...patch };
+    requested = next;
+    startTransition(() => router.replace(`${pathname}${boardFiltersToSearch(next)}`, { scroll: false }));
+  };
   return { update, pending };
 }
 
@@ -91,8 +102,9 @@ function FilterControls({ filters, lookups }: { filters: BoardFilters; lookups: 
 
 /** Desktop: a left rail. */
 export function BoardFilterRail({ filters, lookups }: { filters: BoardFilters; lookups: BoardLookups }) {
+  const t = useTranslations("board");
   return (
-    <aside className="hidden w-56 shrink-0 lg:block" aria-label="Filters">
+    <aside className="hidden w-56 shrink-0 lg:block" aria-label={t("filters.title")}>
       <div className="sticky top-24">
         <FilterControls filters={filters} lookups={lookups} />
       </div>

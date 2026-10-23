@@ -1,6 +1,4 @@
-import { requireCoordinator } from "@/lib/auth";
-
-export default async function SettingsLayout({ children }: LayoutProps<"/v/settings">) {
-  await requireCoordinator();
+// Each settings section checks its own permission in its layout or page.
+export default function SettingsLayout({ children }: LayoutProps<"/v/settings">) {
   return children;
 }
