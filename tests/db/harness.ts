@@ -23,7 +23,8 @@ const SUPABASE_STANDINS = `
 
   create table auth.users (
     id uuid primary key, email text, email_confirmed_at timestamptz,
-    created_at timestamptz not null default now(), last_sign_in_at timestamptz
+    created_at timestamptz not null default now(), last_sign_in_at timestamptz,
+    invited_at timestamptz, encrypted_password text
   );
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', '')::uuid
@@ -89,12 +90,23 @@ export async function as<T>(
   });
 }
 
-/** Creates an account. Unless `confirmed` is false, its email is confirmed, as after a magic-link sign-in. */
-export async function createUser(db: Db, email: string, { confirmed = true } = {}): Promise<string> {
+/**
+ * Creates an account. Unless `confirmed` is false, its email is confirmed, as after a
+ * magic-link sign-in. `via` says how an unconfirmed one came about: "password" is a
+ * sign-up with a password, "invite" is the account Supabase's invite link creates, and
+ * "otp" is a passwordless sign-in.
+ */
+export async function createUser(
+  db: Db,
+  email: string,
+  { confirmed = true, via = "otp" }: { confirmed?: boolean; via?: "password" | "invite" | "otp" } = {},
+): Promise<string> {
   const { rows } = await db.query<{ id: string }>(
-    `insert into auth.users (id, email, email_confirmed_at)
-     values (gen_random_uuid(), $1, case when $2 then now() end) returning id`,
-    [email, confirmed],
+    `insert into auth.users (id, email, email_confirmed_at, invited_at, encrypted_password)
+     values (gen_random_uuid(), $1, case when $2 then now() end,
+             case when $3 = 'invite' then now() end, case when $3 = 'password' then 'x' end)
+     returning id`,
+    [email, confirmed, via],
   );
   return rows[0].id;
 }

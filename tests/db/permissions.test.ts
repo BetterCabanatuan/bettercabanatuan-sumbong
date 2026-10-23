@@ -198,8 +198,8 @@ describe("Volunteer Invitations", () => {
 
   it("wait until the invited address is confirmed", async () => {
     await run(admin, `select invite_volunteer('later@example.org', $1)`, [ids.volunteerRole]);
-    // A password sign-up for the address, with nobody clicking the confirmation email.
-    const id = await createUser(db, "later@example.org", { confirmed: false });
+    // The account the invitation email creates, before anyone clicks its link.
+    const id = await createUser(db, "later@example.org", { confirmed: false, via: "invite" });
     expect(await roleOf(id)).toBeNull();
 
     await db.query(`update auth.users set last_sign_in_at = now() where id = $1`, [id]);
@@ -219,7 +219,7 @@ describe("Volunteer Invitations", () => {
 
   it("are refused for an address that already has an unconfirmed account", async () => {
     // Registered with a password by someone who doesn't own the address.
-    const squatter = await createUser(db, "squatted@example.org", { confirmed: false });
+    const squatter = await createUser(db, "squatted@example.org", { confirmed: false, via: "password" });
     await expect(
       run(admin, `select invite_volunteer('squatted@example.org', $1)`, [ids.coordinatorRole]),
     ).rejects.toThrow(/unconfirmed_account_exists/);
@@ -234,7 +234,7 @@ describe("Volunteer Invitations", () => {
   it("can be sent again after the invitation email created the account", async () => {
     await run(admin, `select invite_volunteer('resend@example.org', $1)`, [ids.volunteerRole]);
     // Supabase's invite link creates an unconfirmed account for the address.
-    const id = await createUser(db, "resend@example.org", { confirmed: false });
+    const id = await createUser(db, "resend@example.org", { confirmed: false, via: "invite" });
 
     const { rows } = await run(admin, `select invite_volunteer('resend@example.org', $1) as applied`, [ids.coordinatorRole]);
     expect(rows[0].applied).toBe(false);
@@ -243,9 +243,30 @@ describe("Volunteer Invitations", () => {
     expect(await roleOf(id)).toEqual({ name: "Coordinator", active: true });
   });
 
+  it("are not taken by a password sign-up made while the invitation is pending", async () => {
+    await run(admin, `select invite_volunteer('raced@example.org', $1)`, [ids.coordinatorRole]);
+    // Someone registers the address with a password before the invitation email creates its account.
+    const squatter = await createUser(db, "raced@example.org", { confirmed: false, via: "password" });
+    await expect(
+      run(admin, `select invite_volunteer('raced@example.org', $1)`, [ids.coordinatorRole]),
+    ).rejects.toThrow(/unconfirmed_account_exists/);
+
+    await db.query(`update auth.users set email_confirmed_at = now() where id = $1`, [squatter]);
+    expect(await roleOf(squatter)).toBeNull();
+    expect((await db.query(`select 1 from volunteer_invitations where email = 'raced@example.org'`)).rows).toHaveLength(1);
+  });
+
+  it("apply to a passwordless sign-in made while the invitation is pending", async () => {
+    // The invitation email failed, so they signed in at /login instead.
+    await run(admin, `select invite_volunteer('otp@example.org', $1)`, [ids.volunteerRole]);
+    const id = await createUser(db, "otp@example.org", { confirmed: false, via: "otp" });
+    await db.query(`update auth.users set email_confirmed_at = now() where id = $1`, [id]);
+    expect(await roleOf(id)).toEqual({ name: "Volunteer", active: true });
+  });
+
   it("are not taken by an account registered before the invitation and confirmed after it", async () => {
     // As with the initial Coordinators: the invitation is written straight to the table.
-    const squatter = await createUser(db, "early@example.org", { confirmed: false });
+    const squatter = await createUser(db, "early@example.org", { confirmed: false, via: "password" });
     await db.query(`insert into volunteer_invitations (email, role_id, created_at) values ('early@example.org', $1, now() + interval '1 second')`, [
       ids.coordinatorRole,
     ]);
