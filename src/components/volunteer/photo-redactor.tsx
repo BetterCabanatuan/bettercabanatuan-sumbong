@@ -56,8 +56,6 @@ export function PhotoRedactor({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState(!publicUrl && !hidden);
-  // Busts the browser cache after re-publishing to the same public path.
-  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     const img = new Image();
@@ -70,9 +68,10 @@ export function PhotoRedactor({
     img.src = originalUrl;
   }, [originalUrl]);
 
+  // `editing` too: "Review again" mounts a fresh canvas that needs the photo drawn on it.
   useEffect(() => {
     draw(draft ? [...boxes, draft] : boxes);
-  }, [boxes, draft]);
+  }, [boxes, draft, editing]);
 
   function draw(regions: Box[]) {
     const img = image.current;
@@ -97,14 +96,15 @@ export function PhotoRedactor({
       try {
         if (!redact) draw([]);
         const blob = await canvasToJpeg(canvas.current!, 0.85);
-        const path = `${reportId}/${photoId}.jpg`;
+        // A new path each time: re-uploading to the same one could leave the old, unredacted
+        // copy in browser and CDN caches. setPhotoReview deletes the previous file.
+        const path = `${reportId}/${photoId}-${Date.now()}.jpg`;
         const { error: uploadError } = await createClient()
           .storage.from(PUBLIC_BUCKET)
-          .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+          .upload(path, blob, { contentType: "image/jpeg" });
         if (uploadError) throw uploadError;
         const result = await setPhotoReview(photoId, path, false);
         if (!result.ok) throw new Error(result.error);
-        setVersion((v) => v + 1);
         setEditing(false);
       } catch (e) {
         setError((e as Error).message);
@@ -125,7 +125,7 @@ export function PhotoRedactor({
       <Card size="sm" className={hidden ? undefined : "pt-0"}>
         {!hidden && publicUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- Supabase storage URL
-          <img src={`${publicUrl}?v=${version}`} alt="Public copy" className="max-h-72 w-full object-contain bg-muted" />
+          <img src={publicUrl} alt="Public copy" className="max-h-72 w-full object-contain bg-muted" />
         )}
         <CardContent>
           {hidden ? (

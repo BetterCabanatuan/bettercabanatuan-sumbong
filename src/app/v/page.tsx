@@ -4,12 +4,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { can, requireVolunteer } from "@/lib/auth";
 import { getOffices } from "@/lib/data";
 import { STATUS_ORDER } from "@/lib/status";
 import { createClient } from "@/lib/supabase/server";
 import type { ReportStatus } from "@/lib/types";
 
 export default async function VolunteerDashboard({ searchParams }: PageProps<"/v">) {
+  const me = await requireVolunteer();
   const params = await searchParams;
   const supabase = await createClient();
   const [{ data: rows }, offices] = await Promise.all([supabase.from("reports").select("status, office_id"), getOffices()]);
@@ -29,34 +31,47 @@ export default async function VolunteerDashboard({ searchParams }: PageProps<"/v
         <h1 className="text-2xl font-bold text-navy">Dashboard</h1>
         <p className="text-muted-foreground">Review new Reports first, then send this week’s Digests.</p>
       </div>
-      {params.coordinator_only && (
+      {params.forbidden && (
         <Alert>
-          <AlertDescription>That page is for Coordinators only.</AlertDescription>
+          <AlertDescription>Your role doesn’t include that page. Ask someone who manages users if you need it.</AlertDescription>
         </Alert>
       )}
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        {STATUS_ORDER.map((status) => (
-          <Link key={status} href={status === "pending_review" ? "/v/review" : `/v/reports?status=${status}`}>
+        {STATUS_ORDER.map((status) => {
+          const tile = (
             <Card size="sm" className="h-full transition-colors hover:bg-muted/50">
               <CardContent className="flex flex-col items-start gap-2">
                 <StatusBadge status={status} />
                 <span className="text-3xl font-bold tabular-nums">{byStatus.get(status) ?? 0}</span>
               </CardContent>
             </Card>
-          </Link>
-        ))}
+          );
+          const href =
+            status === "pending_review"
+              ? can(me, "reports.review") && "/v/review"
+              : can(me, "reports.view") && `/v/reports?status=${status}`;
+          return href ? (
+            <Link key={status} href={href}>
+              {tile}
+            </Link>
+          ) : (
+            <div key={status}>{tile}</div>
+          );
+        })}
       </section>
 
       <Card>
         <CardHeader>
           <CardTitle>Waiting for the next Digest</CardTitle>
           <CardDescription>Published and Reopened Reports per Responsible Office.</CardDescription>
-          <CardAction>
-            <Button variant="outline" nativeButton={false} render={<Link href="/v/digests" />}>
-              Go to Digests
-            </Button>
-          </CardAction>
+          {can(me, "digests.view") && (
+            <CardAction>
+              <Button variant="outline" nativeButton={false} render={<Link href="/v/digests" />}>
+                Go to Digests
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <Table>
           <TableHeader>

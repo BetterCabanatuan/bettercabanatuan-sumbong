@@ -1,6 +1,9 @@
 import "server-only";
+import { createElement } from "react";
+import { render } from "react-email";
 import { createTranslator } from "next-intl";
-import { escapeHtml, sendEmail } from "@/lib/email";
+import ReportNotice, { type NoticeStatus } from "@/emails/report-notice";
+import { sendEmail } from "@/lib/email";
 import { env } from "@/lib/env";
 import { followerSignature } from "@/lib/reporter-access";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -12,6 +15,17 @@ const MESSAGES = { en, fil } as const;
 
 /** What happened to a Report, from the Follower's point of view. */
 export type Notice = "submitted" | "published" | "rejected" | "forwarded" | "resolved" | "reopened" | "misrouted";
+
+/** The status badge each email shows. A Misroute sends the Report back to Published. */
+const NOTICE_STATUS: Record<Notice, NoticeStatus> = {
+  submitted: "pending_review",
+  published: "published",
+  rejected: "rejected",
+  forwarded: "forwarded",
+  resolved: "resolved",
+  reopened: "reopened",
+  misrouted: "published",
+};
 
 interface FollowerRow {
   id: string;
@@ -74,15 +88,29 @@ async function buildEmail(follower: FollowerRow, notice: Notice, trackingToken?:
   const body = t(`${notice}.body`, values);
   const cta = t("cta");
   const footer = t("footer");
+  const status = NOTICE_STATUS[notice];
+  const statusLabel = createTranslator({ locale, messages: MESSAGES[locale], namespace: "status" })(status);
+
+  const html = await render(
+    createElement(ReportNotice, {
+      locale,
+      preview: subject,
+      code: report.public_code,
+      status,
+      statusLabel,
+      body,
+      cta,
+      link: link.toString(),
+      linkFallback: t("linkFallback"),
+      footer,
+    }),
+  );
 
   return {
     to: follower.email!,
     subject,
+    // Written by hand: the rendered plain text would repeat the link under the button and again in the fallback line.
     text: `${body}\n\n${cta}: ${link}\n\n${footer}`,
-    html: `<div style="font-family:Inter,Arial,sans-serif;font-size:16px;line-height:1.5;color:#1f2933;max-width:560px">
-<p>${escapeHtml(body)}</p>
-<p><a href="${escapeHtml(link.toString())}" style="display:inline-block;background:#005df5;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none">${escapeHtml(cta)}</a></p>
-<p style="color:#6b7280;font-size:13px">${escapeHtml(footer)}</p>
-</div>`,
+    html,
   };
 }

@@ -1,22 +1,28 @@
-import Link from "next/link";
+import { cookies } from "next/headers";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DataView } from "@/components/volunteer/data-view";
+import { ListHeader } from "@/components/volunteer/list-header";
+import { can, requirePermission } from "@/lib/auth";
 import { byId, getBarangays, getCategories, getOffices, getReports } from "@/lib/data";
+import { resolveView } from "@/lib/data-view";
+import { parseReportFilters, reportFiltersToSearch } from "@/lib/report-filters";
 import { STATUS_ORDER } from "@/lib/status";
-import type { ReportStatus } from "@/lib/types";
+
+function day(iso: string) {
+  return new Date(iso).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" });
+}
 
 export default async function VolunteerReportsPage({ searchParams }: PageProps<"/v/reports">) {
+  const me = await requirePermission("reports.view");
   const params = await searchParams;
-  const status = STATUS_ORDER.includes(params.status as ReportStatus) ? (params.status as ReportStatus) : undefined;
-  const officeId = typeof params.office === "string" && params.office ? params.office : undefined;
-  const barangayId = typeof params.barangay === "string" && params.barangay ? Number(params.barangay) : undefined;
+  const view = resolveView("reports", params, await cookies());
+  const filters = parseReportFilters(params);
 
   const [reports, categories, offices, barangays] = await Promise.all([
-    getReports({ statuses: status ? [status] : undefined, officeId, barangayId, limit: 300 }),
+    getReports({ ...filters, limit: 300 }),
     getCategories({ includeInactive: true }),
     getOffices({ includeInactive: true }),
     getBarangays(),
@@ -24,11 +30,18 @@ export default async function VolunteerReportsPage({ searchParams }: PageProps<"
   const categoriesById = byId(categories);
   const officesById = byId(offices);
   const barangaysById = byId(barangays);
+  const status = filters.statuses?.[0];
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-navy">Reports</h1>
+      <ListHeader
+        title="Reports"
+        screen="reports"
+        view={view}
+        exportHref={can(me, "reports.export") ? `/v/reports/export?${reportFiltersToSearch(filters)}` : null}
+      />
       <form method="get" className="grid items-end gap-3 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
+        <input type="hidden" name="view" value={view} />
         <Field>
           <FieldLabel htmlFor="f-status">Status</FieldLabel>
           <NativeSelect id="f-status" name="status" defaultValue={status ?? ""}>
@@ -42,7 +55,7 @@ export default async function VolunteerReportsPage({ searchParams }: PageProps<"
         </Field>
         <Field>
           <FieldLabel htmlFor="f-office">Responsible Office</FieldLabel>
-          <NativeSelect id="f-office" name="office" defaultValue={officeId ?? ""}>
+          <NativeSelect id="f-office" name="office" defaultValue={filters.officeId ?? ""}>
             <NativeSelectOption value="">All offices</NativeSelectOption>
             {offices.map((o) => (
               <NativeSelectOption key={o.id} value={o.id}>
@@ -53,7 +66,7 @@ export default async function VolunteerReportsPage({ searchParams }: PageProps<"
         </Field>
         <Field>
           <FieldLabel htmlFor="f-barangay">Barangay</FieldLabel>
-          <NativeSelect id="f-barangay" name="barangay" defaultValue={barangayId ?? ""}>
+          <NativeSelect id="f-barangay" name="barangay" defaultValue={filters.barangayId ?? ""}>
             <NativeSelectOption value="">All barangays</NativeSelectOption>
             {barangays.map((b) => (
               <NativeSelectOption key={b.id} value={b.id}>
@@ -67,42 +80,29 @@ export default async function VolunteerReportsPage({ searchParams }: PageProps<"
         </Button>
       </form>
 
-      <Card className="py-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="pl-4">Code</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Office</TableHead>
-              <TableHead>Barangay</TableHead>
-              <TableHead className="pr-4 text-right">Me Too</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {reports.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell className="pl-4 font-mono">
-                  <Link
-                    href={r.status === "pending_review" ? `/v/review/${r.id}` : `/v/reports/${r.id}`}
-                    className="text-primary underline"
-                  >
-                    {r.public_code}
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={r.status} />
-                </TableCell>
-                <TableCell className="max-w-72 truncate">{r.title ?? categoriesById.get(r.category_id)?.name_en}</TableCell>
-                <TableCell>{r.office_id ? officesById.get(r.office_id)?.short_name : "—"}</TableCell>
-                <TableCell>{r.barangay_id ? barangaysById.get(r.barangay_id)?.name : "—"}</TableCell>
-                <TableCell className="pr-4 text-right tabular-nums">{r.me_too_count}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        {reports.length === 0 && <p className="p-4 text-center text-muted-foreground">No Reports match.</p>}
-      </Card>
+      <DataView
+        view={view}
+        items={reports}
+        itemKey={(r) => r.id}
+        titleLabel="Report"
+        title={(r) => <span className="font-mono">{r.public_code}</span>}
+        subtitle={(r) => r.title ?? categoriesById.get(r.category_id)?.name_en}
+        href={(r) =>
+          r.status === "pending_review" && can(me, "reports.review") ? `/v/review/${r.id}` : `/v/reports/${r.id}`
+        }
+        badges={(r) => <StatusBadge status={r.status} />}
+        fields={[
+          { key: "office", label: "Office", value: (r) => (r.office_id ? officesById.get(r.office_id)?.short_name : "—") },
+          {
+            key: "barangay",
+            label: "Barangay",
+            value: (r) => (r.barangay_id ? barangaysById.get(r.barangay_id)?.name : "—"),
+          },
+          { key: "submitted", label: "Submitted", value: (r) => day(r.created_at), hideInList: true },
+          { key: "metoo", label: "Me Too", numeric: true, value: (r) => r.me_too_count },
+        ]}
+        empty="No Reports match."
+      />
     </>
   );
 }

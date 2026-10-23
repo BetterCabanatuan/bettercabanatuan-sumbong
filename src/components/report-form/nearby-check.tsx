@@ -55,7 +55,7 @@ export function NearbyCheck({
   if (!nearby?.length) return null;
 
   return (
-    <Alert className="border-sun bg-sun/10">
+    <Alert className="border-sun bg-sun/10 transition-[opacity,translate] duration-200 ease-out starting:-translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0">
       <Users />
       <AlertTitle>{t("title")}</AlertTitle>
       <AlertDescription className="flex flex-col gap-3">

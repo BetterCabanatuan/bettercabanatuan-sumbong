@@ -1,6 +1,7 @@
 import { ReportsMap } from "@/components/map";
 import { Card, CardContent } from "@/components/ui/card";
 import { STATUS_MARKER } from "@/lib/status";
+import { cn } from "@/lib/utils";
 import type { Barangay, Category, Report, ReportAnswer } from "@/lib/types";
 
 /** The facts of a Report as Volunteers see them (English labels). */
@@ -9,11 +10,13 @@ export function ReportFacts({
   category,
   barangay,
   answers,
+  className,
 }: {
   report: Report;
   category?: Category;
   barangay?: Barangay;
   answers: ReportAnswer[];
+  className?: string;
 }) {
   const rows: [string, string][] = [
     ["Title", report.title ?? "—"],
@@ -27,7 +30,7 @@ export function ReportFacts({
   ];
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className={cn("grid gap-4 lg:grid-cols-2", className)}>
       <Card size="sm">
         <CardContent>
           <dl className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-x-4 gap-y-2">

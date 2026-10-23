@@ -62,6 +62,8 @@ export function Turnstile({
     return () => {
       cancelled = true;
       if (widgetId) window.turnstile?.remove(widgetId);
+      // A removed widget can't fire its expired callback, so its token must not outlive it.
+      onTokenRef.current(null);
     };
   }, [siteKey, language, resetKey]);
 

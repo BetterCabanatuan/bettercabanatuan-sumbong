@@ -20,7 +20,12 @@ export default async function VolunteerLayout({ children }: LayoutProps<"/v">) {
 
   return (
     <SidebarProvider lang="en">
-      <VolunteerSidebar displayName={volunteer.display_name} role={volunteer.role} pending={pending ?? 0} />
+      <VolunteerSidebar
+        displayName={volunteer.display_name}
+        roleName={volunteer.role_name}
+        permissions={volunteer.permissions}
+        pending={pending ?? 0}
+      />
       <SidebarInset>
         <div className="no-print sticky top-0 z-20 bg-background/95 backdrop-blur">
           <FlagStripe />

@@ -57,8 +57,20 @@ A BetterCabanatuan member who reviews Reports and carries them to Responsible Of
 _Avoid_: Admin, Moderator, Staff, Agent
 
 **Coordinator**:
-A Volunteer who also manages Categories, Responsible Offices and who is a Volunteer. Volunteers join by invitation only.
+A Volunteer whose Role has every Permission: besides Reviewing and sending Digests, they manage Categories, Responsible Offices, who is a Volunteer, and Roles. Volunteers join by invitation only.
 _Avoid_: Admin, Superuser, Owner
+
+**Role**:
+A named set of Permissions that Coordinators define, such as Volunteer or Coordinator. Each Volunteer has exactly one Role; an account without one is just a Reporter's account.
+_Avoid_: Group, Rank, Access level
+
+**Permission**:
+One action a Role allows in one area of the Volunteer console, such as View Reports, Review Reports or Archive Categories. The actions are View, Add, Edit, Delete, Archive, Print and Export, plus Review (Reports) and Send (Digests); an area has only the actions it really has. The list is fixed because the database checks each one; which Roles have them is not.
+_Avoid_: Right, Privilege, Scope
+
+**Volunteer Invitation**:
+A Coordinator's offer of a Role to an email address. It takes effect once that address is confirmed: at once for an account that already confirmed it, otherwise when its owner signs in through the emailed link.
+_Avoid_: Pending user, Seat
 
 **Responsible Office**:
 The body that owns the thing being reported and can fix it, such as CELCOR (electric poles), the City Engineer's Office (city roads, drainage, streetlights), DPWH (national roads), a barangay (barangay roads, biodegradable waste) or City ENRO (residual waste).

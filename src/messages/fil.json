@@ -57,6 +57,7 @@
       "denied": "Hindi namin makuha ang lokasyon mo. I-tap ang mapa para ilagay ang pin.",
       "tap": "I-tap ang mapa para ilagay ang pin.",
       "adjust": "Hilahin ang pin para iayos.",
+      "keyboard": "Mapa. Igalaw ito gamit ang mga arrow key, mag-zoom gamit ang + at −, saka pindutin ang Enter para ilagay ang pin sa gitna ng mapa.",
       "landmark": "Malapit na palatandaan",
       "landmarkHint": "Para madaling mahanap, hal. “tapat ng kapilya”.",
       "landmarkPlaceholder": "hal. kanto ng Burgos Ave., malapit sa sari-sari store"
@@ -161,6 +162,7 @@
       "errors": {
         "invalid_email": "Maglagay ng tamang email address.",
         "not_allowed": "Ang nag-sumbong lang ang puwedeng sumunod dito.",
+        "too_many_followers": "Naabot na ng sumbong na ito ang pinakamaraming email na puwede.",
         "server_error": "Nagkaproblema. Pakisubukan ulit."
       },
       "email": "Email address"
@@ -264,6 +266,7 @@
   },
   "email": {
     "cta": "Tingnan ang sumbong mo",
+    "linkFallback": "Kung hindi gumagana ang button, buksan ang link na ito:",
     "footer": "Natanggap mo ito dahil sinusundan mo ang isang sumbong sa Sumbong · BetterCabanatuan, isang volunteer project. Hindi ito opisyal na mensahe ng Pamahalaang Lungsod.",
     "submitted": {
       "subject": "Natanggap namin ang sumbong mo {code}",

@@ -25,12 +25,26 @@ A mobile-first web app where residents of Cabanatuan City report problems in pub
 | Volunteer | `/v/review` | Review: pixelate faces and plate numbers, confirm Category and Responsible Office, then approve or reject. |
 | Volunteer | `/v/digests` | Build a Digest per office, print the letter, log how it was sent (its Reports become Forwarded), and upload Proof of Receipt. |
 | Volunteer | `/v/reports/:id` | Resolve (with an "after" photo), Misroute, reopen, or take down. |
-| Coordinator | `/v/settings` | Manage Categories and their questions, Responsible Offices, and Volunteers (invite only). |
+| Coordinator | `/v/settings` | Manage Categories and their questions, Responsible Offices, users (invite, give or remove a role) and roles. |
+
+Volunteer access is role-based. Each Volunteer has one role, and a role is a set of permissions laid out as a matrix of area × action:
+
+| Area | View | Add | Edit | Delete | Archive | Print | Export | Other |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Reports | ✓ | | resolve, reopen, Misroute | | take down | | CSV | Review |
+| Digests | ✓ | draft | remove Reports | discard draft | | letter | CSV | Send (log it, Proof of Receipt) |
+| Categories | ✓ | ✓ | ✓ (and questions) | | deactivate | | | |
+| Responsible Offices | ✓ | ✓ | ✓ | | deactivate | | | |
+| Users | ✓ | invite, give a role | change a role | | remove access | | CSV | |
+| Roles | ✓ | ✓ | ✓ | ✓ | | | | |
+
+Only real actions exist (there is no "Delete Reports"; Categories and offices are archived, never deleted, because Reports point at them). View decides who sees non-public data: Reports in Review, original photos, history and Digests. Roles are edited at `/v/settings/roles`; the migrations start with a **Volunteer** role (Review, follow-up, Digests) and a **Coordinator** role (everything). The sidebar and buttons show only what a role allows, and every console list can be shown as a table, a list or a grid.
 
 Business rules live in the database ([`supabase/migrations`](supabase/migrations)):
 
 - A trigger enforces the Report status machine.
-- Volunteers act only through `SECURITY DEFINER` functions, which check their role and write `report_events`.
+- Volunteers act only through `SECURITY DEFINER` functions, which check their role's permission (`require_permission`) and write `report_events`.
+- Nobody can change their own role, give a role with permissions they don't have themselves, or remove the last active holder of `roles.edit`.
 - Reporter-side functions (`submit_report`, `add_me_too`, `reopen_by_follower`) can only be called with the service role. That way the Worker always runs Turnstile and the rate limits first.
 
 ## Local development
@@ -53,15 +67,14 @@ The database tests need no Docker or Supabase project. `tests/db/harness.ts` sta
    - schedule the daily retention job with `pg_cron`;
    - load the starting Responsible Offices and Categories;
    - load the city boundary and all 89 barangay boundaries.
-2. Configure Auth (Authentication → URL Configuration):
-   - **Site URL:** `https://sumbong.bettercabanatuan.org`
-   - **Redirect URLs:** `https://sumbong.bettercabanatuan.org/auth/confirm`, plus `http://localhost:3000/auth/confirm` for dev
+2. Configure Auth. `supabase/config.toml` sets these for local development; the hosted project needs them set in the dashboard:
+   - **URL Configuration:** Site URL `https://sumbong.bettercabanatuan.org`. Redirect URLs `https://sumbong.bettercabanatuan.org/auth/confirm**`, plus `http://localhost:3000/auth/confirm**` for dev. The `**` lets the `?next=` query through.
+   - **Sign In / Providers → Email:** keep **Confirm email** on. Volunteer Invitations apply only to a confirmed address, and with confirmation off, anyone can register an invited address through the public Auth API and have it count as confirmed.
+   - **Emails → Magic Link** and **Emails → Confirm signup:** paste [`supabase/templates/magic_link.html`](supabase/templates/magic_link.html) and [`confirmation.html`](supabase/templates/confirmation.html). Their links go to `/auth/confirm` with a token hash, so a link works in any browser, not only the one that requested it. Invitation emails don't use a Supabase template; the app sends them through Resend.
 3. Set up custom SMTP (Authentication → SMTP), for example Resend. Supabase's built-in sender is heavily rate-limited and is not meant for production magic links.
-4. Create the first Coordinator:
-   - sign in once at `/login`;
-   - run [`supabase/snippets/bootstrap-coordinator.sql`](supabase/snippets/bootstrap-coordinator.sql) in the SQL editor with your email.
+4. Sign in at `/login` as one of the first Coordinators. [`20261019000300_initial_coordinators.sql`](supabase/migrations/20261019000300_initial_coordinators.sql) invites them by email, and the role applies the first time each signs in (locally too, through the Mailpit inbox at `http://localhost:54324`). Invite everyone else from `/v/settings/users`.
 
-   After that, invite everyone else from `/v/settings/volunteers`.
+   To add a Coordinator without the app, for example to recover a project where nobody can manage roles, run [`supabase/snippets/bootstrap-coordinator.sql`](supabase/snippets/bootstrap-coordinator.sql) in the SQL editor with their email.
 
 ### Boundary data
 
@@ -82,6 +95,8 @@ npx wrangler secret put RESEND_API_KEY
 # NEXT_PUBLIC_* values are inlined at build time: export them (or put them in .env.production) before building.
 npm run deploy
 ```
+
+`npm run deploy` first runs `scripts/check-deploy-env.mjs`. It stops when `.env.local` exists, because OpenNext copies every `.env*` file a production build reads into the Worker, so a developer's file would ship localhost links and test keys. It also stops when a `NEXT_PUBLIC_*` value is missing or the Site URL points at localhost. Move `.env.local` aside, or deploy from a clean checkout.
 
 Then add a custom domain (`sumbong.bettercabanatuan.org`) to the Worker, and create a Turnstile widget for that hostname.
 

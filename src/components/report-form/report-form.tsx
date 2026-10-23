@@ -35,6 +35,8 @@ import { PhotoPicker } from "./photo-picker";
 
 type Step = "location" | "category" | "details" | "contact";
 const STEPS: Step[] = ["location", "category", "details", "contact"];
+const STEP_ENTER =
+  "transition-[opacity,translate] duration-200 ease-out starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
 
 type Done = { kind: "submitted"; code: string; token: string } | { kind: "meToo"; code: string };
 
@@ -167,7 +169,7 @@ export function ReportForm({
       )}
 
       {step === "location" && (
-        <FieldSet>
+        <FieldSet className={STEP_ENTER}>
           <StepHeading title={t("location.title")} lead={t("location.lead")} />
           <FieldGroup>
             <Button type="button" variant="outline" size="lg" className="h-11" disabled={locating} onClick={locate}>
@@ -197,7 +199,7 @@ export function ReportForm({
       )}
 
       {step === "category" && location && (
-        <FieldSet>
+        <FieldSet className={STEP_ENTER}>
           <StepHeading title={t("category.title")} />
           <RadioGroup
             value={categoryId ?? ""}
@@ -255,7 +257,7 @@ export function ReportForm({
       )}
 
       {step === "details" && (
-        <FieldSet>
+        <FieldSet className={STEP_ENTER}>
           <StepHeading title={t("details.title")} lead={t("details.lead")} />
           <FieldGroup>
             <PhotoPicker photos={photos} onChange={setPhotos} />
@@ -291,7 +293,7 @@ export function ReportForm({
       )}
 
       {step === "contact" && (
-        <FieldSet>
+        <FieldSet className={STEP_ENTER}>
           <StepHeading title={t("contact.title")} lead={t("contact.lead")} />
           <FieldGroup>
             <Field>
@@ -439,7 +441,7 @@ function DoneView({ done }: { done: Done }) {
   if (done.kind === "meToo") {
     return (
       <div className="flex flex-col items-center gap-3 py-8 text-center">
-        <span className="grid size-14 place-items-center rounded-full bg-sun text-sun-foreground">
+        <span className="grid size-14 place-items-center rounded-full bg-sun text-sun-foreground transition-[opacity,scale] duration-400 ease-out starting:scale-80 starting:opacity-0 motion-reduce:duration-200 motion-reduce:starting:scale-100">
           <Check className="size-7" aria-hidden="true" />
         </span>
         <h2 className="text-xl font-bold text-navy">{t("meTooTitle")}</h2>
@@ -455,11 +457,11 @@ function DoneView({ done }: { done: Done }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col items-center gap-2 text-center">
-        <span className="grid size-14 place-items-center rounded-full bg-status-resolved text-status-resolved-foreground">
+        <span className="grid size-14 place-items-center rounded-full bg-status-resolved text-status-resolved-foreground transition-[opacity,scale] duration-400 ease-out starting:scale-80 starting:opacity-0 motion-reduce:duration-200 motion-reduce:starting:scale-100">
           <Check className="size-7" aria-hidden="true" />
         </span>
         <h2 className="text-xl font-bold text-navy">{t("title")}</h2>
-        <p className="font-mono text-3xl font-medium tracking-wider">{done.code}</p>
+        <p className="font-mono text-3xl font-medium tracking-wider transition-[opacity,translate] delay-60 duration-300 ease-out starting:translate-y-1.5 starting:opacity-0 motion-reduce:starting:translate-y-0">{done.code}</p>
         <p className="text-muted-foreground">{t("lead")}</p>
       </div>
       <Alert className="bg-card">

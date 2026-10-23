@@ -69,6 +69,8 @@ export async function fetchBoardPage(
   } else {
     query = query.order("created_at", { ascending: false });
   }
+  // Reports in one Digest share a timestamp; without a unique tiebreaker, offset pages can repeat or skip them.
+  query = query.order("id");
 
   // Ask for one extra row to know whether another page exists.
   const { data, error } = await query.range(offset, offset + PAGE_SIZE);
@@ -110,6 +112,7 @@ export async function fetchMapPoints(
 
 export const boardKeys = {
   all: ["board"] as const,
+  lists: ["board", "list"] as const,
   list: (filters: BoardFilters) => ["board", "list", filters] as const,
   map: (filters: BoardFilters) => ["board", "map", filters] as const,
   myMeToos: ["board", "my-me-toos"] as const,

@@ -7,7 +7,7 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { saltedHash } from "@/lib/hashing";
 import { notifyFollowers } from "@/lib/notify";
-import { getOrCreateDeviceId } from "@/lib/request";
+import { getClientIp, getOrCreateDeviceId } from "@/lib/request";
 import { hasReporterAccess, type ReporterCredentials } from "@/lib/reporter-access";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -16,14 +16,19 @@ export type ActionResult = { ok: true; meTooCount?: number } | { ok: false; erro
 export async function addMeToo(reportId: string): Promise<ActionResult> {
   if (!z.uuid().safeParse(reportId).success) return { ok: false, error: "invalid_input" };
   const deviceHash = await saltedHash("device", await getOrCreateDeviceId());
+  const ip = await getClientIp();
   const user = await getCurrentUser();
 
   const { data, error } = await createAdminClient().rpc("add_me_too", {
     p_report_id: reportId,
     p_device_hash: deviceHash,
     p_user_id: user?.id ?? null,
+    p_ip_hash: ip ? await saltedHash("ip", ip) : null,
   });
-  if (error) return { ok: false, error: error.message === "not_open" ? "not_open" : "server_error" };
+  if (error) {
+    const known = ["not_open", "rate_limited"];
+    return { ok: false, error: known.includes(error.message) ? error.message : "server_error" };
+  }
   return { ok: true, meTooCount: data as number };
 }
 
@@ -79,6 +84,8 @@ const followInput = z.object({
   signature: z.string().max(100).nullish(),
 });
 
+const MAX_FOLLOWER_EMAILS = 3;
+
 /** Lets a Reporter who submitted without contact details add an email later. */
 export async function followByEmail(input: z.input<typeof followInput>): Promise<ActionResult> {
   const parsed = followInput.safeParse(input);
@@ -89,8 +96,17 @@ export async function followByEmail(input: z.input<typeof followInput>): Promise
     return { ok: false, error: "not_allowed" };
   }
 
+  const admin = createAdminClient();
+  // A Tracking Link is meant for one Reporter; it shouldn't turn into a way to email many addresses.
+  const { count } = await admin
+    .from("report_followers")
+    .select("id", { count: "exact", head: true })
+    .eq("report_id", reportId)
+    .not("email", "is", null);
+  if ((count ?? 0) >= MAX_FOLLOWER_EMAILS) return { ok: false, error: "too_many_followers" };
+
   const locale = await getLocale();
-  const { error } = await createAdminClient()
+  const { error } = await admin
     .from("report_followers")
     .insert({ report_id: reportId, email: email.toLowerCase(), locale: locale === "en" ? "en" : "fil" });
   if (error && error.code !== "23505") return { ok: false, error: "server_error" };

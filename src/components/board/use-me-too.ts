@@ -40,24 +40,29 @@ export function useMeToo() {
       return { reportId, count: result.meTooCount ?? 0 };
     },
     onMutate: async (reportId) => {
-      await queryClient.cancelQueries({ queryKey: boardKeys.all });
-      const lists = queryClient.getQueriesData<InfiniteData<BoardPage>>({ queryKey: ["board", "list"] });
-      const mine = queryClient.getQueryData<Set<string>>(boardKeys.myMeToos);
-
-      queryClient.setQueriesData<InfiniteData<BoardPage>>({ queryKey: ["board", "list"] }, (data) =>
+      // Only the lists: cancelling the in-flight "my Me Toos" fetch would lose which ones are pressed.
+      await queryClient.cancelQueries({ queryKey: boardKeys.lists });
+      queryClient.setQueriesData<InfiniteData<BoardPage>>({ queryKey: boardKeys.lists }, (data) =>
         bumpCount(data, reportId, (n) => n + 1),
       );
-      queryClient.setQueryData<Set<string>>(boardKeys.myMeToos, new Set(mine).add(reportId));
-      return { lists, mine };
+      queryClient.setQueryData<Set<string>>(boardKeys.myMeToos, (mine) => new Set(mine).add(reportId));
     },
-    onError: (_error, _reportId, context) => {
-      context?.lists.forEach(([key, data]) => queryClient.setQueryData(key, data));
-      queryClient.setQueryData(boardKeys.myMeToos, context?.mine);
+    // Undo only this Report's change, so a failure doesn't wipe another card's Me Too made meanwhile.
+    onError: (_error, reportId) => {
+      queryClient.setQueriesData<InfiniteData<BoardPage>>({ queryKey: boardKeys.lists }, (data) =>
+        bumpCount(data, reportId, (n) => Math.max(n - 1, 0)),
+      );
+      queryClient.setQueryData<Set<string>>(boardKeys.myMeToos, (mine) => {
+        if (!mine) return mine;
+        const next = new Set(mine);
+        next.delete(reportId);
+        return next;
+      });
       toast.error(t("meTooFailed"));
     },
     onSuccess: ({ reportId, count }) => {
-      // The server's count is the truth (another resident may have voted meanwhile).
-      queryClient.setQueriesData<InfiniteData<BoardPage>>({ queryKey: ["board", "list"] }, (data) =>
+      // The server's count is the truth (another resident may have said Me Too meanwhile).
+      queryClient.setQueriesData<InfiniteData<BoardPage>>({ queryKey: boardKeys.lists }, (data) =>
         bumpCount(data, reportId, () => count),
       );
     },

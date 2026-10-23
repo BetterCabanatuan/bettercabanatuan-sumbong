@@ -57,6 +57,7 @@
       "denied": "We couldn’t get your location. Tap the map to place the pin.",
       "tap": "Tap the map to place the pin.",
       "adjust": "Drag the pin to adjust it.",
+      "keyboard": "Map. Move it with the arrow keys, zoom with + and −, then press Enter to put the pin in the middle of the map.",
       "landmark": "Nearby landmark",
       "landmarkHint": "Helps the crew find it, e.g. “in front of the chapel”.",
       "landmarkPlaceholder": "e.g. corner of Burgos Ave., near the sari-sari store"
@@ -161,6 +162,7 @@
       "errors": {
         "invalid_email": "Please enter a valid email address.",
         "not_allowed": "Only the person who reported this can follow it here.",
+        "too_many_followers": "This report already has the most email addresses it can take.",
         "server_error": "Something went wrong. Please try again."
       },
       "email": "Email address"
@@ -264,6 +266,7 @@
   },
   "email": {
     "cta": "View your report",
+    "linkFallback": "If the button doesn’t work, open this link:",
     "footer": "You get this because you followed a report on Sumbong · BetterCabanatuan, a volunteer project. It is not an official City Government message.",
     "submitted": {
       "subject": "We received your report {code}",

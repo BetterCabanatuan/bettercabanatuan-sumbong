@@ -21,9 +21,12 @@ const SUPABASE_STANDINS = `
   create schema storage;
   grant usage on schema public, extensions, auth, storage to anon, authenticated, service_role;
 
-  create table auth.users (id uuid primary key, email text);
+  create table auth.users (
+    id uuid primary key, email text, email_confirmed_at timestamptz,
+    created_at timestamptz not null default now(), last_sign_in_at timestamptz
+  );
   create function auth.uid() returns uuid language sql stable as $$
-    select nullif(current_setting('request.jwt.claims', true)::jsonb ->> 'sub', '')::uuid
+    select nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', '')::uuid
   $$;
   grant execute on function auth.uid() to anon, authenticated, service_role;
 
@@ -35,6 +38,7 @@ const SUPABASE_STANDINS = `
     id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner uuid
   );
   alter table storage.objects enable row level security;
+  grant all on storage.objects to anon, authenticated, service_role;
 
   alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
   alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
@@ -44,12 +48,21 @@ const SUPABASE_STANDINS = `
 export type Db = PGlite;
 export type Role = "anon" | "authenticated" | "service_role";
 
-export async function createDb(): Promise<Db> {
+/**
+ * A fresh database with the migrations applied. With `before`, stops ahead of the first
+ * migration whose name starts at or after that prefix; `applyMigrations` runs the rest.
+ */
+export async function createDb(options: { before?: string } = {}): Promise<Db> {
   const db = await PGlite.create({ extensions: { postgis } });
   await db.exec(SUPABASE_STANDINS);
+  await applyMigrations(db, (file) => !options.before || file < options.before);
+  return db;
+}
 
+/** Applies the migrations `include` selects, in order. */
+export async function applyMigrations(db: Db, include: (file: string) => boolean = () => true) {
   const files = readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql") && !SKIPPED_MIGRATIONS.has(f))
+    .filter((f) => f.endsWith(".sql") && !SKIPPED_MIGRATIONS.has(f) && include(f))
     .sort();
   for (const file of files) {
     try {
@@ -58,7 +71,6 @@ export async function createDb(): Promise<Db> {
       throw new Error(`Migration ${file} failed: ${(error as Error).message}`);
     }
   }
-  return db;
 }
 
 /** Runs `fn` as a Supabase API role, optionally as a signed-in user, inside a rolled-back-on-error transaction. */
@@ -77,22 +89,22 @@ export async function as<T>(
   });
 }
 
-export async function createUser(db: Db, email: string): Promise<string> {
+/** Creates an account. Unless `confirmed` is false, its email is confirmed, as after a magic-link sign-in. */
+export async function createUser(db: Db, email: string, { confirmed = true } = {}): Promise<string> {
   const { rows } = await db.query<{ id: string }>(
-    `insert into auth.users (id, email) values (gen_random_uuid(), $1) returning id`,
-    [email],
+    `insert into auth.users (id, email, email_confirmed_at)
+     values (gen_random_uuid(), $1, case when $2 then now() end) returning id`,
+    [email, confirmed],
   );
   return rows[0].id;
 }
 
-export async function createVolunteer(
-  db: Db,
-  email: string,
-  role: "volunteer" | "coordinator" = "volunteer",
-): Promise<string> {
+/** Creates an account with a Volunteer row holding the named role ("Volunteer", "Coordinator" or a custom one). */
+export async function createVolunteer(db: Db, email: string, role = "Volunteer"): Promise<string> {
   const id = await createUser(db, email);
   await db.query(
-    `insert into public.volunteers (user_id, display_name, role) values ($1, $2, $3)`,
+    `insert into public.volunteers (user_id, display_name, role_id)
+     select $1, $2, id from public.roles where name = $3`,
     [id, email.split("@")[0], role],
   );
   return id;

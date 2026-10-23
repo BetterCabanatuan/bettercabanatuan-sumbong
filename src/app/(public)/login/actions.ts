@@ -2,16 +2,17 @@
 
 import { z } from "zod";
 import { env } from "@/lib/env";
+import { safeNextPath } from "@/lib/redirect";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = { status: "idle" | "sent" | "error"; email?: string };
 
 export async function sendMagicLink(_: LoginState, form: FormData): Promise<LoginState> {
-  const email = z.email().safeParse(String(form.get("email") ?? "").trim());
-  if (!email.success) return { status: "error" };
+  const raw = String(form.get("email") ?? "").trim();
+  const email = z.email().safeParse(raw);
+  if (!email.success) return { status: "error", email: raw };
 
-  const rawNext = String(form.get("next") ?? "/");
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
+  const next = safeNextPath(form.get("next"));
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
