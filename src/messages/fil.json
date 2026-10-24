@@ -49,6 +49,10 @@
       "unknown_category": "Wala na ang uring iyon. Pumili ng iba.",
       "server_error": "Nagkaproblema sa amin. Hindi naipadala ang sumbong mo. Pakisubukan ulit."
     },
+    "fieldErrors": {
+      "email": "Maglagay ng tamang email address, o iwan itong blangko.",
+      "tooLong": "Hanggang {max} na titik lang ang puwede rito."
+    },
     "location": {
       "title": "Saan ito?",
       "lead": "Ilagay ang pin kung saan mismo ang problema.",

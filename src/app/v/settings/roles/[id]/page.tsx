@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { ActionFieldError, ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { PermissionMatrix } from "@/components/volunteer/permission-matrix";
 import { can, requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -70,7 +70,7 @@ export default async function RolePage({ params, searchParams }: PageProps<"/v/s
       )}
 
       <Card>
-        <ActionForm action={saveRole} className="contents">
+        <ActionForm schema="role" action={saveRole} className="contents">
           {roleRow && <input type="hidden" name="id" value={roleRow.id} />}
           <CardHeader>
             <CardTitle>Role</CardTitle>
@@ -81,10 +81,12 @@ export default async function RolePage({ params, searchParams }: PageProps<"/v/s
               <Field>
                 <FieldLabel htmlFor="role-name">Name</FieldLabel>
                 <Input id="role-name" name="name" defaultValue={roleRow?.name} maxLength={60} required disabled={!editable} />
+                <ActionFieldError name="name" />
               </Field>
               <Field>
                 <FieldLabel htmlFor="role-description">Description</FieldLabel>
                 <Input id="role-description" name="description" defaultValue={roleRow?.description ?? ""} disabled={!editable} />
+                <ActionFieldError name="description" />
               </Field>
             </FieldGroup>
             <PermissionMatrix

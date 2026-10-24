@@ -76,7 +76,7 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
                   <TableCell className="tabular-nums text-muted-foreground">{row.count} waiting</TableCell>
                   <TableCell className="pr-4 text-right">
                     {can(me, "digests.add") && (
-                      <ActionForm action={createDigest}>
+                      <ActionForm schema="createDigest" action={createDigest}>
                         <input type="hidden" name="office_id" value={row.office} />
                         {row.barangay && <input type="hidden" name="barangay_id" value={row.barangay} />}
                         <SubmitButton variant="outline">Create draft</SubmitButton>

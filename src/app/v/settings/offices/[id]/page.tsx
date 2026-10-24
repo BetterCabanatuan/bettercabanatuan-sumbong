@@ -10,7 +10,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { ActionFieldError, ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { can, requirePermission } from "@/lib/auth";
 import { getOffices } from "@/lib/data";
 
@@ -50,7 +50,7 @@ export default async function OfficePage({ params, searchParams }: PageProps<"/v
       )}
 
       <Card>
-        <ActionForm action={saveOffice} className="contents">
+        <ActionForm schema="office" action={saveOffice} className="contents">
           {office && <input type="hidden" name="id" value={office.id} />}
           <CardHeader>
             <CardTitle>Details</CardTitle>
@@ -70,6 +70,7 @@ export default async function OfficePage({ params, searchParams }: PageProps<"/v
                 <Field>
                   <FieldLabel htmlFor={`short-${key}`}>Short name</FieldLabel>
                   <Input id={`short-${key}`} name="short_name" defaultValue={office?.short_name} required />
+                  <ActionFieldError name="short_name" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`scope-${key}`}>Scope</FieldLabel>
@@ -77,39 +78,48 @@ export default async function OfficePage({ params, searchParams }: PageProps<"/v
                     <NativeSelectOption value="citywide">Citywide (one Digest)</NativeSelectOption>
                     <NativeSelectOption value="per_barangay">Per barangay (one Digest per barangay hall)</NativeSelectOption>
                   </NativeSelect>
+                  <ActionFieldError name="scope" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`name_en-${key}`}>Name (English)</FieldLabel>
                   <Input id={`name_en-${key}`} name="name_en" defaultValue={office?.name_en} required />
+                  <ActionFieldError name="name_en" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`name_fil-${key}`}>Name (Filipino)</FieldLabel>
                   <Input id={`name_fil-${key}`} name="name_fil" defaultValue={office?.name_fil} required />
+                  <ActionFieldError name="name_fil" />
                 </Field>
                 <Field className="sm:col-span-2">
                   <FieldLabel htmlFor={`channel-${key}`}>Official channel</FieldLabel>
                   <Textarea id={`channel-${key}`} name="channel" defaultValue={office?.channel} required />
                   <FieldDescription>How a Digest reaches this office, per its Citizen’s Charter.</FieldDescription>
+                  <ActionFieldError name="channel" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`addressee-${key}`}>Letter addressee</FieldLabel>
                   <Textarea id={`addressee-${key}`} name="letter_addressee" defaultValue={office?.letter_addressee ?? ""} rows={3} />
+                  <ActionFieldError name="letter_addressee" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`attention-${key}`}>Attention line</FieldLabel>
                   <Input id={`attention-${key}`} name="letter_attention" defaultValue={office?.letter_attention ?? ""} />
+                  <ActionFieldError name="letter_attention" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`email-${key}`}>Email</FieldLabel>
                   <Input id={`email-${key}`} name="email" type="email" defaultValue={office?.email ?? ""} />
+                  <ActionFieldError name="email" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`phone-${key}`}>Phone</FieldLabel>
                   <Input id={`phone-${key}`} name="phone" defaultValue={office?.phone ?? ""} />
+                  <ActionFieldError name="phone" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`address-${key}`}>Address</FieldLabel>
                   <Input id={`address-${key}`} name="address" defaultValue={office?.address ?? ""} />
+                  <ActionFieldError name="address" />
                 </Field>
               </FieldGroup>
             </fieldset>

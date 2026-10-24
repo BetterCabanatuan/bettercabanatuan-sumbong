@@ -1,15 +1,15 @@
 "use server";
 
-import { z } from "zod";
 import { env } from "@/lib/env";
 import { safeNextPath } from "@/lib/redirect";
+import { emailAddress } from "@/lib/report-schema";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = { status: "idle" | "sent" | "error"; email?: string };
 
 export async function sendMagicLink(_: LoginState, form: FormData): Promise<LoginState> {
   const raw = String(form.get("email") ?? "").trim();
-  const email = z.email().safeParse(raw);
+  const email = emailAddress.safeParse(raw);
   if (!email.success) return { status: "error", email: raw };
 
   const next = safeNextPath(form.get("next"));

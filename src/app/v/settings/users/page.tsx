@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { ActionFieldError, ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { DataView } from "@/components/volunteer/data-view";
 import { ListHeader } from "@/components/volunteer/list-header";
 import { type VolunteerAccess, can, requirePermission } from "@/lib/auth";
@@ -85,15 +85,17 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ActionForm action={inviteVolunteer} success="Invited." className="flex flex-col gap-4">
+            <ActionForm schema="invite" action={inviteVolunteer} success="Invited." className="flex flex-col gap-4">
               <FieldGroup className="grid items-end gap-4 sm:grid-cols-[2fr_2fr_1fr_auto]">
                 <Field>
                   <FieldLabel htmlFor="invite-email">Email</FieldLabel>
                   <Input id="invite-email" name="email" type="email" required />
+                  <ActionFieldError name="email" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="invite-name">Display name</FieldLabel>
                   <Input id="invite-name" name="display_name" />
+                  <ActionFieldError name="display_name" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="invite-role">Role</FieldLabel>
@@ -239,7 +241,7 @@ function AccessControl({
 
   const choices = canChangeRole ? roles : roles.filter((role) => role.id === current);
   return (
-    <ActionForm action={setUserAccess} success="Saved." className="flex flex-wrap items-center gap-2">
+    <ActionForm schema="userAccess" action={setUserAccess} success="Saved." className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="user_id" value={account.user_id} />
       <NativeSelect name="role_id" defaultValue={current ?? "none"} aria-label={`Role for ${account.display_name ?? account.email}`}>
         {(!account.active || canRemove) && (

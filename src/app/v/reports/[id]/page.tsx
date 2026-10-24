@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { ActionFieldError, ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { ReportFacts } from "@/components/volunteer/report-facts";
 import { ResolveForm } from "@/components/volunteer/resolve-form";
 import { can, requireVolunteer } from "@/lib/auth";
@@ -78,6 +78,7 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
         {can(me, "reports.edit") && report.status === "forwarded" && (
           <Card>
             <ActionForm
+              schema="misroute"
               action={misrouteReport.bind(null, report.id)}
               className="contents"
               success="Reassigned. It will go out in the new office's next Digest."
@@ -104,10 +105,12 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
                           </NativeSelectOption>
                         ))}
                     </NativeSelect>
+                    <ActionFieldError name="office_id" />
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="misroute-note">What did the office say?</FieldLabel>
                     <Textarea id="misroute-note" name="note" maxLength={500} />
+                    <ActionFieldError name="note" />
                   </Field>
                 </FieldGroup>
               </CardContent>
@@ -120,7 +123,7 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
 
         {can(me, "reports.edit") && report.status === "resolved" && (
           <Card>
-            <ActionForm action={reopenReport.bind(null, report.id)} className="contents" success="Reopened.">
+            <ActionForm schema="reopen" action={reopenReport.bind(null, report.id)} className="contents" success="Reopened.">
               <CardHeader>
                 <CardTitle>Reopen</CardTitle>
               </CardHeader>
@@ -128,6 +131,7 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
                 <Field>
                   <FieldLabel htmlFor="reopen-note">Why is it not fixed?</FieldLabel>
                   <Textarea id="reopen-note" name="note" maxLength={500} required />
+                  <ActionFieldError name="note" />
                 </Field>
               </CardContent>
               <CardFooter>
@@ -139,7 +143,7 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
 
         {can(me, "reports.archive") && PUBLIC_STATUSES.includes(report.status) && (
           <Card>
-            <ActionForm action={rejectReport.bind(null, report.id)} className="contents">
+            <ActionForm schema="reject" action={rejectReport.bind(null, report.id)} className="contents">
               <input type="hidden" name="preset" value="Taken down" />
               <CardHeader>
                 <CardTitle>Take down</CardTitle>
@@ -149,6 +153,7 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
                 <Field>
                   <FieldLabel htmlFor="takedown-reason">Reason</FieldLabel>
                   <Textarea id="takedown-reason" name="reason" maxLength={500} required />
+                  <ActionFieldError name="reason" />
                 </Field>
               </CardContent>
               <CardFooter>

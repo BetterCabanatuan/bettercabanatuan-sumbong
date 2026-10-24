@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { localized } from "@/i18n/config";
 import { BOARD_VIEWS, type BoardFilters, type BoardView, boardFiltersToSearch } from "@/lib/board";
+import { startRouteProgress } from "@/lib/route-progress";
 import type { Locale } from "@/lib/types";
 import { CategoryIcon } from "@/components/category-icon";
 import type { BoardLookups } from "./types";
@@ -28,9 +29,15 @@ export function useBoardNavigation(filters: BoardFilters) {
     requested = null;
   }, [filters]);
   const update = (patch: Partial<BoardFilters>) => {
-    const next = { ...(requested ?? filters), ...patch };
+    // Build on the latest request so a quick second change does not drop the first.
+    const current = requested ?? filters;
+    const next = { ...current, ...patch };
+    const search = boardFiltersToSearch(next);
+    // Asking for what is already showing, or already on its way, leaves nothing to wait for.
+    if (search === boardFiltersToSearch(current)) return;
     requested = next;
-    startTransition(() => router.replace(`${pathname}${boardFiltersToSearch(next)}`, { scroll: false }));
+    startRouteProgress();
+    startTransition(() => router.replace(`${pathname}${search}`, { scroll: false }));
   };
   return { update, pending };
 }
