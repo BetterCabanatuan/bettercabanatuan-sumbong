@@ -8,7 +8,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { ActionFieldError, ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { CheckboxField } from "@/components/volunteer/checkbox-field";
 import { can, requirePermission } from "@/lib/auth";
 import { getCategories, getOffices } from "@/lib/data";
@@ -44,7 +44,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
       )}
 
       <Card>
-        <ActionForm action={saveCategory} className="contents">
+        <ActionForm schema="category" action={saveCategory} className="contents">
           {category && <input type="hidden" name="id" value={category.id} />}
           <CardHeader>
             <CardTitle>Details</CardTitle>
@@ -56,32 +56,39 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
                 <Field>
                   <FieldLabel htmlFor="name_en">Name (English)</FieldLabel>
                   <Input id="name_en" name="name_en" defaultValue={category?.name_en} required />
+                  <ActionFieldError name="name_en" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="name_fil">Name (Filipino)</FieldLabel>
                   <Input id="name_fil" name="name_fil" defaultValue={category?.name_fil} required />
+                  <ActionFieldError name="name_fil" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="description_en">Description (English)</FieldLabel>
                   <Textarea id="description_en" name="description_en" defaultValue={category?.description_en ?? ""} />
+                  <ActionFieldError name="description_en" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="description_fil">Description (Filipino)</FieldLabel>
                   <Textarea id="description_fil" name="description_fil" defaultValue={category?.description_fil ?? ""} />
+                  <ActionFieldError name="description_fil" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="urgent_notice_en">Urgent notice (English)</FieldLabel>
                   <Textarea id="urgent_notice_en" name="urgent_notice_en" defaultValue={category?.urgent_notice_en ?? ""} />
                   <FieldDescription>Shown before the form, for hazards that must not wait for a Digest.</FieldDescription>
+                  <ActionFieldError name="urgent_notice_en" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="urgent_notice_fil">Urgent notice (Filipino)</FieldLabel>
                   <Textarea id="urgent_notice_fil" name="urgent_notice_fil" defaultValue={category?.urgent_notice_fil ?? ""} />
+                  <ActionFieldError name="urgent_notice_fil" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="slug">Slug</FieldLabel>
                   <Input id="slug" name="slug" defaultValue={category?.slug} required pattern="[a-z0-9]+(-[a-z0-9]+)*" />
                   <FieldDescription>Lowercase letters, numbers and dashes. Used in board links.</FieldDescription>
+                  <ActionFieldError name="slug" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="icon">Icon</FieldLabel>
@@ -108,6 +115,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
                 <Field>
                   <FieldLabel htmlFor="sort_order">Sort order</FieldLabel>
                   <Input id="sort_order" name="sort_order" type="number" defaultValue={category?.sort_order ?? 100} />
+                  <ActionFieldError name="sort_order" />
                 </Field>
               </FieldGroup>
             </fieldset>
@@ -148,7 +156,7 @@ function QuestionForm({
   const key = question?.id ?? "new";
   return (
     <Card size="sm">
-      <ActionForm action={saveQuestion} success="Saved." className="contents">
+      <ActionForm schema="question" action={saveQuestion} success="Saved." className="contents">
         <input type="hidden" name="category_id" value={categoryId} />
         {question && <input type="hidden" name="id" value={question.id} />}
         <CardHeader>
@@ -161,10 +169,12 @@ function QuestionForm({
               <Field>
                 <FieldLabel htmlFor={`prompt_en-${key}`}>Question (English)</FieldLabel>
                 <Input id={`prompt_en-${key}`} name="prompt_en" defaultValue={question?.prompt_en} required />
+                <ActionFieldError name="prompt_en" />
               </Field>
               <Field>
                 <FieldLabel htmlFor={`prompt_fil-${key}`}>Question (Filipino)</FieldLabel>
                 <Input id={`prompt_fil-${key}`} name="prompt_fil" defaultValue={question?.prompt_fil} required />
+                <ActionFieldError name="prompt_fil" />
               </Field>
               <Field>
                 <FieldLabel htmlFor={`kind-${key}`}>Answer type</FieldLabel>
@@ -173,10 +183,12 @@ function QuestionForm({
                   <NativeSelectOption value="yes_no">Yes / No</NativeSelectOption>
                   <NativeSelectOption value="text">Short text</NativeSelectOption>
                 </NativeSelect>
+                <ActionFieldError name="kind" />
               </Field>
               <Field>
                 <FieldLabel htmlFor={`sort-${key}`}>Sort order</FieldLabel>
                 <Input id={`sort-${key}`} name="sort_order" type="number" defaultValue={question?.sort_order ?? 100} />
+                <ActionFieldError name="sort_order" />
               </Field>
               <Field className="sm:col-span-2">
                 <FieldLabel htmlFor={`choices-${key}`}>Choices</FieldLabel>
@@ -190,6 +202,7 @@ function QuestionForm({
                 <FieldDescription>
                   Choice questions only. One per line: value | English | Filipino. Don’t change values that already have answers.
                 </FieldDescription>
+                <ActionFieldError name="choices" />
               </Field>
               <CheckboxField id={`required-${key}`} name="required" label="Required" defaultChecked={question?.required ?? false} />
               <CheckboxField id={`active-${key}`} name="active" label="Active" defaultChecked={question?.active ?? true} />

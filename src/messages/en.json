@@ -49,6 +49,10 @@
       "unknown_category": "That category is no longer available. Please choose another.",
       "server_error": "Something went wrong on our side. Your report was not sent. Please try again."
     },
+    "fieldErrors": {
+      "email": "Enter a valid email address, or leave it blank.",
+      "tooLong": "Keep this to {max} characters or fewer."
+    },
     "location": {
       "title": "Where is it?",
       "lead": "Put the pin exactly where the problem is.",

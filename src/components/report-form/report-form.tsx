@@ -16,6 +16,7 @@ import {
   Field,
   FieldContent,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldLegend,
@@ -32,6 +33,7 @@ import { localized } from "@/i18n/config";
 import type { CategoryWithQuestions } from "@/lib/data";
 import { saveDeviceReport } from "@/lib/device-reports";
 import { clearDraft, loadDraft, saveDraftFields, saveDraftPhotos } from "@/lib/draft";
+import { REPORT_LIMITS, type ReportField, reportFields, toReportFormData } from "@/lib/report-schema";
 import type { CategoryQuestion, Locale } from "@/lib/types";
 import { NearbyList, useNearbyReports } from "./nearby-check";
 import { PhotoPicker } from "./photo-picker";
@@ -39,6 +41,21 @@ import { PhotoPicker } from "./photo-picker";
 // "nearby" is shown only when open Reports of the same Category are close to the pin.
 type Step = "location" | "category" | "nearby" | "details" | "review";
 const STEPS: Step[] = ["location", "category", "nearby", "details", "review"];
+// The step where each field is filled in, so a field that fails the schema can be shown there.
+const FIELD_STEP: Record<ReportField, Step> = {
+  lat: "location",
+  lng: "location",
+  landmark: "location",
+  category_id: "category",
+  answers: "category",
+  title: "details",
+  description: "details",
+  email: "review",
+  locale: "review",
+};
+// Fields with their own message under the input; any other failure falls back to errors.invalid_input.
+type InlineField = "landmark" | "title" | "description" | "email";
+const INLINE_FIELDS: ReportField[] = ["landmark", "title", "description", "email"];
 const STEP_ENTER =
   "transition-[opacity,translate] duration-200 ease-out starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
 
@@ -81,6 +98,7 @@ export function ReportForm({
   const [captchaReset, setCaptchaReset] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<SubmitErrorCode | null>(null);
+  const [invalid, setInvalid] = useState<Partial<Record<InlineField, boolean>>>({});
   const [done, setDone] = useState<Done | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [restored, setRestored] = useState(false);
@@ -151,6 +169,7 @@ export function ReportForm({
     setTitle("");
     setDescription("");
     setSubmitError(null);
+    setInvalid({});
     setRestored(false);
     setStep("location");
   }
@@ -180,30 +199,43 @@ export function ReportForm({
     );
   }
 
+  function fieldError(field: InlineField) {
+    if (!invalid[field]) return null;
+    return field === "email" ? t("fieldErrors.email") : t("fieldErrors.tooLong", { max: REPORT_LIMITS[field] });
+  }
+
+  function edited(field: InlineField) {
+    if (invalid[field]) setInvalid((current) => ({ ...current, [field]: false }));
+  }
+
   async function submit() {
     if (!location || !category) return;
-    setSubmitting(true);
     setSubmitError(null);
 
-    const form = new FormData();
-    form.set("category_id", category.id);
-    form.set("lat", String(location.lat));
-    form.set("lng", String(location.lng));
-    form.set("title", title);
-    form.set("landmark", landmark);
-    form.set("description", description);
-    form.set("email", email.trim());
-    form.set("locale", locale);
-    form.set(
-      "answers",
-      JSON.stringify(
-        Object.entries(answers)
-          .filter(([, value]) => value.trim())
-          .map(([question_id, value]) => ({ question_id, value })),
-      ),
-    );
-    photos.forEach((photo, i) => form.append("photos", photo, `photo-${i + 1}.jpg`));
-    if (captcha) form.set("cf-turnstile-response", captcha);
+    const parsed = reportFields.safeParse({
+      category_id: category.id,
+      lat: location.lat,
+      lng: location.lng,
+      title,
+      landmark,
+      description,
+      email: email.trim(),
+      locale,
+      answers: Object.entries(answers)
+        .filter(([, value]) => value.trim())
+        .map(([question_id, value]) => ({ question_id, value })),
+    });
+    if (!parsed.success) {
+      const failed = new Set(parsed.error.issues.map((issue) => issue.path[0] as ReportField));
+      setInvalid(Object.fromEntries(INLINE_FIELDS.filter((f) => failed.has(f)).map((f) => [f, true])));
+      if ([...failed].some((f) => !INLINE_FIELDS.includes(f))) setSubmitError("invalid_input");
+      const first = STEPS.find((candidate) => [...failed].some((f) => FIELD_STEP[f] === candidate));
+      if (first) setStep(first);
+      return;
+    }
+
+    setSubmitting(true);
+    const form = toReportFormData(parsed.data, photos, captcha);
 
     try {
       const response = await fetch("/api/reports", { method: "POST", body: form });
@@ -216,7 +248,7 @@ export function ReportForm({
           id: body.id,
           code: body.code,
           token: body.token,
-          following: Boolean(email.trim() || signedInEmail),
+          following: Boolean(parsed.data.email || signedInEmail),
         });
         window.scrollTo({ top: 0 });
         return;
@@ -279,17 +311,22 @@ export function ReportForm({
               <LocationPicker value={location} onChange={setLocation} className="size-full" />
             </div>
             <p className="text-sm text-muted-foreground">{location ? t("location.adjust") : t("location.tap")}</p>
-            <Field>
+            <Field data-invalid={invalid.landmark}>
               <FieldLabel htmlFor="landmark">{t("location.landmark")}</FieldLabel>
               <Input
                 id="landmark"
                 value={landmark}
-                maxLength={200}
-                onChange={(e) => setLandmark(e.target.value)}
+                maxLength={REPORT_LIMITS.landmark}
+                aria-invalid={invalid.landmark}
+                onChange={(e) => {
+                  setLandmark(e.target.value);
+                  edited("landmark");
+                }}
                 placeholder={t("location.landmarkPlaceholder")}
                 className="h-11 text-base md:text-sm"
               />
               <FieldDescription>{t("location.landmarkHint")}</FieldDescription>
+              <FieldError>{fieldError("landmark")}</FieldError>
             </Field>
           </FieldGroup>
           <StepNav onNext={() => setStep("category")} nextDisabled={!location} />
@@ -370,33 +407,43 @@ export function ReportForm({
           <StepHeading title={t("details.title")} lead={t("details.lead")} />
           <FieldGroup>
             <PhotoPicker photos={photos} onChange={setPhotos} />
-            <Field>
+            <Field data-invalid={invalid.title}>
               <FieldLabel htmlFor="title">
                 {t("details.titleLabel")} <span className="font-normal text-muted-foreground">{t("optional")}</span>
               </FieldLabel>
               <Input
                 id="title"
                 value={title}
-                maxLength={120}
-                onChange={(e) => setTitle(e.target.value)}
+                maxLength={REPORT_LIMITS.title}
+                aria-invalid={invalid.title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  edited("title");
+                }}
                 placeholder={t("details.titlePlaceholder")}
                 className="h-11 text-base md:text-sm"
               />
               <FieldDescription>{t("details.titleHint")}</FieldDescription>
+              <FieldError>{fieldError("title")}</FieldError>
             </Field>
-            <Field>
+            <Field data-invalid={invalid.description}>
               <FieldLabel htmlFor="description">
                 {t("details.description")} <span className="font-normal text-muted-foreground">{t("optional")}</span>
               </FieldLabel>
               <Textarea
                 id="description"
                 value={description}
-                maxLength={2000}
+                maxLength={REPORT_LIMITS.description}
                 rows={4}
-                onChange={(e) => setDescription(e.target.value)}
+                aria-invalid={invalid.description}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  edited("description");
+                }}
                 className="text-base md:text-sm"
               />
               <FieldDescription>{t("details.descriptionHint")}</FieldDescription>
+              <FieldError>{fieldError("description")}</FieldError>
             </Field>
           </FieldGroup>
           <StepNav onBack={back} onNext={() => setStep("review")} nextDisabled={photos.length === 0} />
@@ -443,7 +490,7 @@ export function ReportForm({
               <FieldLegend variant="label">{t("contact.title")}</FieldLegend>
               <FieldDescription>{t("contact.lead")}</FieldDescription>
             </FieldSet>
-            <Field>
+            <Field data-invalid={invalid.email}>
               <FieldLabel htmlFor="email">{t("contact.email")}</FieldLabel>
               <Input
                 id="email"
@@ -451,10 +498,17 @@ export function ReportForm({
                 inputMode="email"
                 autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                maxLength={REPORT_LIMITS.email}
+                aria-invalid={invalid.email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  edited("email");
+                }}
+                onBlur={() => setInvalid((current) => ({ ...current, email: !reportFields.shape.email.safeParse(email.trim()).success }))}
                 className="h-11 text-base md:text-sm"
               />
               <FieldDescription>{t("contact.emailHint")}</FieldDescription>
+              <FieldError>{fieldError("email")}</FieldError>
             </Field>
             <Alert className="bg-card">
               <AlertDescription>
@@ -602,7 +656,7 @@ function QuestionField({
         <Input
           id={`q-${question.id}`}
           value={value}
-          maxLength={500}
+          maxLength={REPORT_LIMITS.answer}
           onChange={(e) => onChange(e.target.value)}
           className="h-11 text-base md:text-sm"
         />

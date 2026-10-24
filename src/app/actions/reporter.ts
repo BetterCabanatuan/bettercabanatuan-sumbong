@@ -11,6 +11,7 @@ import { notifyFollowers } from "@/lib/notify";
 import { getClientIp, getOrCreateDeviceId } from "@/lib/request";
 import { hasReporterAccess, type ReporterCredentials } from "@/lib/reporter-access";
 import { reportTitle } from "@/lib/report-title";
+import { followInput, reopenInput } from "@/lib/reporter-schema";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Locale, Report, ReportStatus } from "@/lib/types";
 
@@ -47,14 +48,6 @@ export async function getMyMeToos(): Promise<string[]> {
   return (data ?? []).map((row) => row.report_id as string);
 }
 
-const reopenInput = z.object({
-  reportId: z.uuid(),
-  note: z.string().trim().max(500).optional(),
-  token: z.string().max(100).nullish(),
-  followerId: z.uuid().nullish(),
-  signature: z.string().max(100).nullish(),
-});
-
 /** A Follower says a Resolved Report is not actually fixed. */
 export async function reopenAsFollower(input: z.input<typeof reopenInput>): Promise<ActionResult> {
   const parsed = reopenInput.safeParse(input);
@@ -78,14 +71,6 @@ export async function reopenAsFollower(input: z.input<typeof reopenInput>): Prom
   revalidatePath("/r/[code]", "page");
   return { ok: true };
 }
-
-const followInput = z.object({
-  reportId: z.uuid(),
-  email: z.email().max(254),
-  token: z.string().max(100).nullish(),
-  followerId: z.uuid().nullish(),
-  signature: z.string().max(100).nullish(),
-});
 
 const MAX_FOLLOWER_EMAILS = 3;
 

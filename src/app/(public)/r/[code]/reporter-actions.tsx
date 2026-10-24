@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import type { ReporterCredentials } from "@/lib/reporter-access";
+import { followInput, reopenInput } from "@/lib/reporter-schema";
 
 const confirmationEnter =
   "transition-[opacity,scale] duration-200 ease-out starting:scale-98 starting:opacity-0 motion-reduce:starting:scale-100";
@@ -111,7 +112,10 @@ export function ReopenForm({ reportId, credentials }: { reportId: string; creden
               id="reopen-note"
               value={note}
               maxLength={500}
-              onChange={(e) => setNote(e.target.value)}
+              onChange={(e) => {
+                setNote(e.target.value);
+                setError(null);
+              }}
               placeholder={t("placeholder")}
               aria-invalid={error ? true : undefined}
             />
@@ -125,7 +129,9 @@ export function ReopenForm({ reportId, credentials }: { reportId: string; creden
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              const result = await reopenAsFollower({ reportId, note, ...credentials });
+              const input = { reportId, note, ...credentials };
+              if (!reopenInput.safeParse(input).success) return setError("invalid_input");
+              const result = await reopenAsFollower(input);
               if (result.ok) setDone(true);
               else setError(result.error);
             })
@@ -164,10 +170,13 @@ export function FollowForm({ reportId, credentials }: { reportId: string; creden
       <CardContent>
         <form
           id="follow-form"
+          noValidate
           onSubmit={(event) => {
             event.preventDefault();
+            const input = { reportId, email, ...credentials };
+            if (!followInput.safeParse(input).success) return setError("invalid_email");
             startTransition(async () => {
-              const result = await followByEmail({ reportId, email, ...credentials });
+              const result = await followByEmail(input);
               if (result.ok) setDone(true);
               else setError(result.error);
             });
@@ -183,7 +192,10 @@ export function FollowForm({ reportId, credentials }: { reportId: string; creden
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError(null);
+                }}
                 aria-invalid={error ? true : undefined}
               />
               {error && <FieldError>{t(`errors.${error}`)}</FieldError>}

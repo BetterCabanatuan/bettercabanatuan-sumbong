@@ -1,10 +1,10 @@
 import { after, NextResponse } from "next/server";
-import { z } from "zod";
 import { isLocale } from "@/i18n/config";
 import { getCurrentUser } from "@/lib/auth";
 import { generateToken, saltedHash, sha256 } from "@/lib/hashing";
 import { stripJpegMetadata } from "@/lib/jpeg";
 import { notifyFollowers } from "@/lib/notify";
+import { fromReportFormData, reportFields } from "@/lib/report-schema";
 import { getClientIp, getOrCreateDeviceId } from "@/lib/request";
 import { MAX_PHOTO_BYTES, MAX_PHOTOS, ORIGINALS_BUCKET } from "@/lib/storage";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -32,32 +32,6 @@ const KNOWN_DB_ERRORS = new Set<SubmitErrorCode>([
   "unknown_category",
 ]);
 
-const fields = z.object({
-  category_id: z.uuid(),
-  lat: z.coerce.number().min(-90).max(90),
-  lng: z.coerce.number().min(-180).max(180),
-  title: z.string().trim().max(120).optional().default(""),
-  landmark: z.string().trim().max(200).optional().default(""),
-  description: z.string().trim().max(2000).optional().default(""),
-  email: z.union([z.literal(""), z.email().max(254)]).optional().default(""),
-  locale: z.string().optional(),
-  answers: z
-    .string()
-    .optional()
-    .default("[]")
-    .transform((value, ctx) => {
-      try {
-        return z
-          .array(z.object({ question_id: z.uuid(), value: z.string().trim().max(500) }))
-          .max(20)
-          .parse(JSON.parse(value));
-      } catch {
-        ctx.addIssue({ code: "custom", message: "answers" });
-        return z.NEVER;
-      }
-    }),
-});
-
 function fail(code: SubmitErrorCode, status = 400) {
   return NextResponse.json({ error: code }, { status });
 }
@@ -75,7 +49,7 @@ export async function POST(request: Request) {
     return fail("captcha_failed", 403);
   }
 
-  const parsed = fields.safeParse(Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === "string")));
+  const parsed = reportFields.safeParse(fromReportFormData(form));
   if (!parsed.success) return fail("invalid_input");
   const input = parsed.data;
 
