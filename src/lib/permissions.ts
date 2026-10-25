@@ -5,14 +5,25 @@ import type { Permission, PermissionAction, PermissionArea } from "@/lib/types";
  * from the `permissions` table (supabase/migrations/20261020000100_permission_matrix.sql):
  * only actions the console really has, so there is no "Delete Reports".
  */
-export const PERMISSION_AREAS: { key: PermissionArea; label: string }[] = [
-  { key: "reports", label: "Reports" },
-  { key: "digests", label: "Digests" },
-  { key: "categories", label: "Categories" },
-  { key: "offices", label: "Responsible Offices" },
-  { key: "users", label: "Users" },
-  { key: "roles", label: "Roles" },
+export type PermissionGroup = "work" | "setup" | "access";
+
+export const PERMISSION_GROUPS: { key: PermissionGroup; label: string }[] = [
+  { key: "work", label: "Work" },
+  { key: "setup", label: "Setup" },
+  { key: "access", label: "Access" },
 ];
+
+export const PERMISSION_AREAS: { key: PermissionArea; label: string; group: PermissionGroup }[] = [
+  { key: "reports", label: "Reports", group: "work" },
+  { key: "digests", label: "Digests", group: "work" },
+  { key: "categories", label: "Categories", group: "setup" },
+  { key: "offices", label: "Responsible Offices", group: "setup" },
+  { key: "users", label: "Users", group: "access" },
+  { key: "roles", label: "Roles", group: "access" },
+];
+
+/** Actions that remove or hide things; the matrix sets their columns apart. */
+export const RISKY_ACTIONS: readonly PermissionAction[] = ["delete", "archive"];
 
 export const PERMISSION_ACTIONS: { key: PermissionAction; label: string }[] = [
   { key: "view", label: "View" },

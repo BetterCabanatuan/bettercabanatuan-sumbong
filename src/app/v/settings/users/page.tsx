@@ -1,13 +1,14 @@
 import { Users } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { cancelInvitation, inviteVolunteer, setUserAccess } from "@/app/v/actions";
+import { cancelInvitation, inviteVolunteer } from "@/app/v/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { AccessForm } from "@/components/volunteer/access-form";
 import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { DataView } from "@/components/volunteer/data-view";
 import { ListHeader } from "@/components/volunteer/list-header";
@@ -20,6 +21,13 @@ const PAGE_SIZE = 50;
 
 function day(iso: string | null) {
   return iso ? new Date(iso).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" }) : "Never";
+}
+
+/** "today", "3 days ago": how long ago an invitation went out. */
+function ago(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days < 1) return "today";
+  return days === 1 ? "yesterday" : `${days} days ago`;
 }
 
 export default async function UsersPage({ searchParams }: PageProps<"/v/settings/users">) {
@@ -86,7 +94,7 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ActionForm action={inviteVolunteer} success="Invited." className="flex flex-col gap-4">
+            <ActionForm action={inviteVolunteer} success="Invited. Inviting the same address again sends its email again." className="flex flex-col gap-4">
               <FieldGroup className="grid items-end gap-4 sm:grid-cols-[2fr_2fr_1fr_auto]">
                 <Field>
                   <FieldLabel htmlFor="invite-email">Email</FieldLabel>
@@ -131,9 +139,10 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             titleLabel="Email"
             title={(invitation) => invitation.email}
             subtitle={(invitation) => invitation.display_name}
+            badges={() => <Badge variant="outline">Invited</Badge>}
             fields={[
               { key: "role", label: "Role", value: (invitation) => roleNames.get(invitation.role_id) },
-              { key: "invited", label: "Invited", value: (invitation) => day(invitation.created_at) },
+              { key: "invited", label: "Invited", value: (invitation) => ago(invitation.created_at) },
             ]}
             actions={
               can(me, "users.add")
@@ -257,22 +266,16 @@ function AccessControl({
   if (account.user_id === me.user_id || (!canChangeRole && !canRemove)) return null;
 
   const choices = canChangeRole ? roles : roles.filter((role) => role.id === current);
+  const showNone = !account.active || canRemove;
   return (
-    <ActionForm action={setUserAccess} success="Saved." className="flex flex-wrap items-center gap-2">
-      <input type="hidden" name="user_id" value={account.user_id} />
-      <NativeSelect name="role_id" defaultValue={current ?? "none"} aria-label={`Role for ${account.display_name ?? account.email}`}>
-        {(!account.active || canRemove) && (
-          <NativeSelectOption value="none">
-            {account.role_name && !account.active ? `No access (was ${account.role_name})` : "No access"}
-          </NativeSelectOption>
-        )}
-        {choices.map((role) => (
-          <NativeSelectOption key={role.id} value={role.id}>
-            {role.name}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
-      <SubmitButton variant="outline">Save</SubmitButton>
-    </ActionForm>
+    <AccessForm
+      key={`${account.user_id}:${current}`}
+      userId={account.user_id}
+      name={account.display_name ?? account.email ?? "this person"}
+      current={current}
+      active={account.active}
+      noAccessLabel={showNone ? (account.role_name && !account.active ? `No access (was ${account.role_name})` : "No access") : null}
+      roles={choices}
+    />
   );
 }
