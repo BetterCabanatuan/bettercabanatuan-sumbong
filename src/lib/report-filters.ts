@@ -62,7 +62,8 @@ export function reportFilterChips(
   const chips: FilterChip[] = [];
   const status = filters.statuses?.[0];
   if (status) chips.push({ key: "status", label: `Status: ${names.status(status)}`, href: without("statuses") });
-  if (filters.officeId) chips.push({ key: "office", label: `Office: ${names.office(filters.officeId) ?? "Unknown"}`, href: without("officeId") });
+  if (filters.officeId)
+    chips.push({ key: "office", label: `Office: ${names.office(filters.officeId) ?? "Unknown"}`, href: without("officeId") });
   if (filters.barangayId) {
     chips.push({ key: "barangay", label: `Barangay: ${names.barangay(filters.barangayId) ?? "Unknown"}`, href: without("barangayId") });
   }

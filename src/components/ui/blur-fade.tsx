@@ -5,6 +5,7 @@ import {
   AnimatePresence,
   motion,
   useInView,
+  useReducedMotion,
   type MotionProps,
   type UseInViewOptions,
   type Variants,
@@ -47,6 +48,8 @@ export function BlurFade({
   const ref = useRef(null)
   const inViewResult = useInView(ref, { once: true, margin: inViewMargin })
   const isInView = !inView || inViewResult
+  // People who ask for less motion get the content straight away.
+  const reduceMotion = useReducedMotion()
   const defaultVariants: Variants = {
     hidden: {
       [direction === "left" || direction === "right" ? "x" : "y"]:
@@ -79,10 +82,10 @@ export function BlurFade({
         exit="hidden"
         variants={combinedVariants}
         transition={{
-          delay: 0.04 + delay,
-          duration,
+          delay: reduceMotion ? 0 : 0.04 + delay,
+          duration: reduceMotion ? 0 : duration,
           ease: "easeOut",
-          ...(shouldTransitionFilter ? { filter: { duration } } : {}),
+          ...(shouldTransitionFilter ? { filter: { duration: reduceMotion ? 0 : duration } } : {}),
         }}
         className={className}
         {...props}

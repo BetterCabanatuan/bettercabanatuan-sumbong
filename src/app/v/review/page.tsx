@@ -1,9 +1,11 @@
 import { ClipboardCheck } from "lucide-react";
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { formatAge } from "@/lib/age";
 import { byId, getBarangays, getCategories, getReports } from "@/lib/data";
 
 export default async function ReviewQueuePage({ searchParams }: PageProps<"/v/review">) {
@@ -46,36 +48,49 @@ export default async function ReviewQueuePage({ searchParams }: PageProps<"/v/re
           </EmptyHeader>
         </Empty>
       ) : (
-        <Card className="py-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="pl-4">Code</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Barangay</TableHead>
-                <TableHead className="pr-4 text-right">Submitted</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {queue.map((report) => (
-                <TableRow key={report.id}>
-                  <TableCell className="pl-4 font-mono">
-                    <Link href={`/v/review/${report.id}`} className="text-primary underline">
-                      {report.public_code}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="max-w-64 truncate">{report.title ?? "—"}</TableCell>
-                  <TableCell>{categoriesById.get(report.category_id)?.name_en}</TableCell>
-                  <TableCell>{report.barangay_id ? barangaysById.get(report.barangay_id)?.name : "Not tagged"}</TableCell>
-                  <TableCell className="pr-4 text-right text-muted-foreground">
-                    {new Date(report.created_at).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}
-                  </TableCell>
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {queue.length} {queue.length === 1 ? "Report" : "Reports"} waiting. Oldest: {formatAge(queue[0].created_at)}.
+            </p>
+            <Button nativeButton={false} render={<Link href={`/v/review/${queue[0].id}`} />}>
+              Start with the oldest
+            </Button>
+          </div>
+          <Card className="py-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-4">Code</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Barangay</TableHead>
+                  <TableHead className="pr-4 text-right">Waiting</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+              </TableHeader>
+              <TableBody>
+                {queue.map((report) => (
+                  <TableRow key={report.id}>
+                    <TableCell className="pl-4 font-mono">
+                      <Link href={`/v/review/${report.id}`} className="text-primary underline">
+                        {report.public_code}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="max-w-64 truncate">{report.title ?? "—"}</TableCell>
+                    <TableCell>{categoriesById.get(report.category_id)?.name_en}</TableCell>
+                    <TableCell>{report.barangay_id ? barangaysById.get(report.barangay_id)?.name : "Not tagged"}</TableCell>
+                    <TableCell
+                      className="pr-4 text-right text-muted-foreground"
+                      title={new Date(report.created_at).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}
+                    >
+                      {formatAge(report.created_at)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </>
       )}
     </>
   );
