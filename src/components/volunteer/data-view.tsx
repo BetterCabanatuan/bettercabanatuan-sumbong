@@ -3,6 +3,7 @@ import Link from "next/link";
 import { isValidElement, type ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { RowCheckbox, SelectAllCheckbox } from "@/components/volunteer/report-selection";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { DataViewMode } from "@/lib/data-view";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,8 @@ interface DataViewProps<T> {
   actions?: (item: T) => ReactNode;
   actionsLabel?: string;
   empty: ReactNode | EmptyState;
+  /** Table layout only: a checkbox column. Must sit inside <ReportSelection>. */
+  selectable?: { id: (item: T) => string; code: (item: T) => string; label: (item: T) => string };
 }
 
 /** One console list, rendered as a table, a list or a grid of cards from the same fields. */
@@ -98,13 +101,30 @@ function Clamped({ children }: { children: ReactNode }) {
   );
 }
 
-function TableLayout<T>({ items, itemKey, titleLabel, title, subtitle, href, badges, fields, actions, actionsLabel }: DataViewProps<T>) {
+function TableLayout<T>({
+  items,
+  itemKey,
+  titleLabel,
+  title,
+  subtitle,
+  href,
+  badges,
+  fields,
+  actions,
+  actionsLabel,
+  selectable,
+}: DataViewProps<T>) {
   return (
     <Card className="py-0">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="pl-4">{titleLabel}</TableHead>
+            {selectable && (
+              <TableHead className="w-10 pl-4">
+                <SelectAllCheckbox rows={items.map((item) => ({ id: selectable.id(item), code: selectable.code(item) }))} />
+              </TableHead>
+            )}
+            <TableHead className={cn(!selectable && "pl-4")}>{titleLabel}</TableHead>
             {fields.map((field) => (
               <TableHead key={field.key} className={cn(field.numeric && "text-right")}>
                 {field.label}
@@ -116,7 +136,12 @@ function TableLayout<T>({ items, itemKey, titleLabel, title, subtitle, href, bad
         <TableBody>
           {items.map((item) => (
             <TableRow key={itemKey(item)}>
-              <TableCell className="pl-4">
+              {selectable && (
+                <TableCell className="pl-4">
+                  <RowCheckbox id={selectable.id(item)} code={selectable.code(item)} label={selectable.label(item)} />
+                </TableCell>
+              )}
+              <TableCell className={cn(!selectable && "pl-4")}>
                 <div className="flex flex-col gap-0.5">
                   <span className="flex flex-wrap items-center gap-2">
                     <Title item={item} title={title} href={href} />
