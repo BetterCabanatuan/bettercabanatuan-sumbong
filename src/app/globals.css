@@ -168,10 +168,27 @@
 @theme {
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --animate-sun-pop: sun-pop 240ms cubic-bezier(0.23, 1, 0.32, 1);
+  --animate-rise-in: rise-in 320ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-draw: draw 420ms cubic-bezier(0.23, 1, 0.32, 1) 120ms both;
 
   @keyframes sun-pop {
     from {
       scale: 0.85;
+    }
+  }
+
+  /* A list item arriving: pair with `style={{ animationDelay }}` (≤ 40 ms apart, 8 items at most). */
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+    }
+  }
+
+  /* An SVG stroke drawing itself; the path needs `pathLength="1"` and `stroke-dasharray: 1`. */
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
     }
   }
 }
