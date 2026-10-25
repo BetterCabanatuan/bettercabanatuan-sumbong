@@ -108,6 +108,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
                 <Field>
                   <FieldLabel htmlFor="sort_order">Sort order</FieldLabel>
                   <Input id="sort_order" name="sort_order" type="number" defaultValue={category?.sort_order ?? 100} />
+                  <FieldDescription>Lower numbers come first.</FieldDescription>
                 </Field>
               </FieldGroup>
             </fieldset>
@@ -173,10 +174,12 @@ function QuestionForm({
                   <NativeSelectOption value="yes_no">Yes / No</NativeSelectOption>
                   <NativeSelectOption value="text">Short text</NativeSelectOption>
                 </NativeSelect>
+                <FieldDescription>Only Choice questions use the list below.</FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor={`sort-${key}`}>Sort order</FieldLabel>
                 <Input id={`sort-${key}`} name="sort_order" type="number" defaultValue={question?.sort_order ?? 100} />
+                <FieldDescription>Lower numbers come first.</FieldDescription>
               </Field>
               <Field className="sm:col-span-2">
                 <FieldLabel htmlFor={`choices-${key}`}>Choices</FieldLabel>

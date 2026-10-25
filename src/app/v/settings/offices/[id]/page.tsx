@@ -6,11 +6,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { ChannelField } from "@/components/volunteer/channel-field";
 import { can, requirePermission } from "@/lib/auth";
 import { getOffices } from "@/lib/data";
 
@@ -86,11 +87,7 @@ export default async function OfficePage({ params, searchParams }: PageProps<"/v
                   <FieldLabel htmlFor={`name_fil-${key}`}>Name (Filipino)</FieldLabel>
                   <Input id={`name_fil-${key}`} name="name_fil" defaultValue={office?.name_fil} required />
                 </Field>
-                <Field className="sm:col-span-2">
-                  <FieldLabel htmlFor={`channel-${key}`}>Official channel</FieldLabel>
-                  <Textarea id={`channel-${key}`} name="channel" defaultValue={office?.channel} required />
-                  <FieldDescription>How a Digest reaches this office, per its Citizen’s Charter.</FieldDescription>
-                </Field>
+                <ChannelField id={`channel-${key}`} defaultValue={office?.channel} />
                 <Field>
                   <FieldLabel htmlFor={`addressee-${key}`}>Letter addressee</FieldLabel>
                   <Textarea id={`addressee-${key}`} name="letter_addressee" defaultValue={office?.letter_addressee ?? ""} rows={3} />
