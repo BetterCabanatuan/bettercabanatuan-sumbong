@@ -40,7 +40,7 @@ export default async function VolunteerReportPage({ params }: PageProps<"/v/repo
     <>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="font-mono text-2xl font-bold text-navy">{report.public_code}</h1>
-        <StatusBadge status={report.status} />
+        <StatusBadge status={report.status} labels="en" />
         <Button variant="link" nativeButton={false} render={<Link href={`/r/${report.public_code}`} />}>
           Public page
         </Button>
