@@ -35,6 +35,11 @@
     "next": "Susunod",
     "submit": "Ipadala",
     "optional": "(hindi kailangan)",
+    "emergency": {
+      "title": "Emergency?",
+      "body": "May kuryenteng kable, baha na may taong nanganganib, o sunog? Huwag nang gamitin ang form na ito. Tumawag agad sa CDRRMO.",
+      "call": "Tawagan ang 0908-881-1010"
+    },
     "yes": "Oo",
     "no": "Hindi",
     "errors": {
@@ -108,7 +113,7 @@
     },
     "done": {
       "title": "Naipadala ang sumbong. Salamat!",
-      "lead": "Susuriin ito ng volunteer sa lalong madaling panahon. Ito ang code ng sumbong mo.",
+      "lead": "Ito ang code ng sumbong mo.",
       "saveLink": "I-save ang pribadong link na ito para masubaybayan ang sumbong mo at mabuksan ulit kung hindi talaga naayos:",
       "copy": "Kopyahin ang link",
       "copied": "Nakopya na",
@@ -117,7 +122,14 @@
       "meTooLead": "Mas napapansin ang problema kapag mas maraming residente ang nagsusumbong nito.",
       "share": "Ipadala ang link sa sarili mo",
       "shareTitle": "Ang sumbong ko {code}",
-      "savedHere": "Naka-save din ito sa device na ito sa <link>Mga sumbong ko</link>."
+      "savedHere": "Naka-save din ito sa device na ito sa <link>Mga sumbong ko</link>.",
+      "nextTitle": "Ano ang susunod",
+      "next1": "Titingnan ng volunteer ang mga litrato at lokasyon mo. Bi-blur ang mga mukha at plate number.",
+      "next2": "Kapag na-approve, lalabas ito sa public board at puwedeng mag-“Ako rin” ang ibang residente.",
+      "next3": "Dadalhin ito ng volunteer sa tamang opisina. Makikita mo ang bawat hakbang sa page ng sumbong mo.",
+      "updatesEmail": "Mag-e-email kami kapag nagbago ang status nito.",
+      "another": "Mag-sumbong ulit",
+      "volunteer": "Volunteers ang nagpapatakbo nito, hindi ang City Government."
     },
     "urgent": "Unahin ang kaligtasan",
     "review": {
@@ -130,12 +142,37 @@
       "details": "Pamagat at paglalarawan",
       "noDetails": "Walang inilagay",
       "edit": "Baguhin",
-      "editLabel": "Baguhin ang {section}"
+      "editLabel": "Baguhin ang {section}",
+      "commit": "Walang maipapadala hangga’t hindi mo pinipindot ang button sa ibaba. Susuriin muna ng volunteer ang sumbong mo bago ito lumabas sa board."
     },
     "draft": {
       "restored": "Ibinalik namin ang sumbong na hindi mo pa natatapos.",
       "startOver": "Magsimula ulit"
-    }
+    },
+    "blocked": {
+      "pin": "Ilagay muna ang pin sa mapa.",
+      "category": "Pumili muna ng klase ng problema.",
+      "answer": "Sagutan muna ang kailangang tanong: “{prompt}”.",
+      "photo": "Magdagdag ng kahit 1 litrato.",
+      "captcha": "Sandali lang, chine-check pa namin kung hindi ka bot."
+    },
+    "intro": {
+      "ready": "Ihanda ang litrato, at pumunta sa mismong lugar ng problema.",
+      "volunteer": "Mga volunteer ng BetterCabanatuan ang nagpapatakbo nito, hindi ang City Government. Sinusuri namin ang bawat sumbong bago dalhin sa tamang opisina.",
+      "how": "Paano ito gumagana"
+    },
+    "captcha": {
+      "checking": "Chine-check kung hindi ka bot…",
+      "failed": "Hindi namin ma-check. I-tap para subukan ulit.",
+      "retry": "Subukan ulit"
+    },
+    "gotoStep": "Pumunta sa {step}",
+    "steps": {
+      "location": "lokasyon",
+      "category": "klase ng problema",
+      "details": "litrato at detalye"
+    },
+    "errorTitle": "Error: "
   },
   "reportPage": {
     "statusExplainer": {
@@ -164,7 +201,8 @@
       "reopened": "Binuksan muli",
       "forwardedBody": "Kasama sa liham ng mga volunteer sa opisina, sa opisyal nitong channel.",
       "publishedBody": "Sinuri ng volunteer ang lokasyon at uri, at pinalabo ang mukha at plate number.",
-      "meToo": "{count} residente ang nagsabing “Ako rin”"
+      "meToo": "{count} residente ang nagsabing “Ako rin”",
+      "officePhase": "Nasa Responsableng opisina na"
     },
     "reopen": {
       "title": "Hindi pa talaga naayos?",
@@ -203,6 +241,12 @@
       "copy": "Kopyahin ang link",
       "copied": "Nakopya ang link",
       "facebook": "I-share sa Facebook"
+    },
+    "notFound": {
+      "title": "Hindi namin maipakita ang sumbong na ito",
+      "body": "Baka nasa pagsusuri pa ito, o mali ang code. Kung sa iyo ito, buksan ang pribadong link na natanggap mo nang mag-sumbong ka, o tingnan sa Mga sumbong ko.",
+      "myReports": "Mga sumbong ko",
+      "home": "Lahat ng sumbong"
     }
   },
   "login": {
@@ -214,7 +258,16 @@
     "error": "Hindi namin naipadala ang link. Pakisuri ang email at subukan ulit.",
     "denied": "Hindi volunteer account ang account na ito. Humingi ng imbitasyon sa isang Coordinator.",
     "linkError": "Hindi na gumagana o expired na ang sign-in link. Humingi ng bago.",
-    "sentTitle": "Tingnan ang email mo"
+    "sentTitle": "Tingnan ang email mo",
+    "wrong": "Mali ang email? Palitan",
+    "resend": "Ipadala ulit ang link",
+    "resendIn": "Puwede ulit sa {seconds}s",
+    "spam": "Wala pa? Tingnan ang spam folder. Galing ito sa BetterCabanatuan Sumbong.",
+    "otherApp": "Kung sa ibang app bumukas ang link, kopyahin ito sa karaniwan mong browser.",
+    "didYouMean": "Ang ibig mo bang sabihin ay {email}?",
+    "rateLimited": "Masyado nang maraming email ang naipadala. Maghintay muna bago humingi ng bagong link.",
+    "failed": "Hindi namin naipadala ang link ngayon. Pakisubukan ulit.",
+    "newLink": "Humingi ng bagong link"
   },
   "me": {
     "title": "Mga sumbong ko",
@@ -371,7 +424,8 @@
       "forwarded": "Naipadala sa {office} {when}",
       "published": "Ipapadala sa {office} sa susunod na batch",
       "resolved": "Naayos {when}",
-      "reopened": "Sabi ng nag-sumbong, hindi pa talaga naayos"
+      "reopened": "Sabi ng nag-sumbong, hindi pa talaga naayos",
+      "updated": "Na-update {when}"
     },
     "error": {
       "title": "Hindi ma-load ang mga sumbong",
@@ -389,11 +443,33 @@
       "step1": "Mag-sumbong gamit ang litrato at pin sa mapa.",
       "step2": "Sinusuri ng volunteer at pinalalabo ang mukha at plate number.",
       "step3": "Ipinapadala ng mga volunteer sa tamang opisina tuwing linggo.",
-      "step4": "Sasabihan ka kapag naayos na."
+      "step4": "Sasabihan ka kapag naayos na.",
+      "toggle": "Paano ito gumagana"
     },
     "emergency": {
       "title": "Emergency?",
-      "body": "May kuryenteng kable, baha na may taong nanganganib, o sunog? Huwag nang mag-sumbong dito. Tumawag sa CDRRMO: 0908-881-1010."
+      "body": "May kuryenteng kable, baha na may taong nanganganib, o sunog? Huwag nang mag-sumbong dito. Tumawag sa CDRRMO: 0908-881-1010.",
+      "short": "Emergency? Tumawag sa CDRRMO: 0908-881-1010."
+    },
+    "stats": {
+      "label": "Kamakailang aktibidad",
+      "week": "{count} bagong sumbong ngayong linggo",
+      "month": "{count} naayos ngayong buwan"
+    },
+    "lookup": {
+      "label": "Hanapin ang isang sumbong",
+      "hint": "I-paste ang code o link na ibinigay sa iyo.",
+      "placeholder": "CBN-ABC234",
+      "submit": "Hanapin",
+      "invalid": "Mukhang hindi ito code ng sumbong. Ganito ang itsura ng code: CBN-ABC234."
+    },
+    "map": {
+      "label": "Mapa ng mga sumbong",
+      "empty": "Walang sumbong na maipapakita sa mapa",
+      "emptyHint": "Lalabas dito ang mga sumbong na may pin kapag na-publish na ang mga ito.",
+      "legend": "Gabay sa mapa",
+      "markerLabel": "{title}, {status}",
+      "reportLink": "Buksan ang sumbong {code}"
     }
   }
 }

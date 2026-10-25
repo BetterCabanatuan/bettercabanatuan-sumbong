@@ -1,3 +1,4 @@
+import { Mail } from "lucide-react";
 import { cookies } from "next/headers";
 import { createDigest } from "@/app/v/actions";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +64,9 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
           <CardDescription>Reports waiting per Responsible Office.</CardDescription>
         </CardHeader>
         {readyRows.length === 0 ? (
-          <p className="px-4 pb-4 text-muted-foreground">Nothing waiting.</p>
+          <p className="px-4 pb-4 text-muted-foreground">
+            Nothing waiting. A Digest takes every Published or Reopened Report for one Responsible Office.
+          </p>
         ) : (
           <Table>
             <TableBody>
@@ -72,6 +75,12 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
                   <TableCell className="pl-4">
                     <span className="font-medium">{officesById.get(row.office)?.name_en}</span>
                     {row.barangay && <span> · Brgy. {barangaysById.get(row.barangay)?.name}</span>}
+                    <span
+                      className="line-clamp-1 max-w-[48ch] text-xs text-muted-foreground"
+                      title={officesById.get(row.office)?.channel}
+                    >
+                      Channel: {officesById.get(row.office)?.channel}
+                    </span>
                   </TableCell>
                   <TableCell className="tabular-nums text-muted-foreground">{row.count} waiting</TableCell>
                   <TableCell className="pr-4 text-right">
@@ -110,12 +119,14 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
           badges={(d) => (
             <Badge
               className={
-                d.sent_at
-                  ? "bg-status-resolved text-status-resolved-foreground"
-                  : "bg-status-published text-status-published-foreground"
+                !d.sent_at
+                  ? "bg-status-published text-status-published-foreground"
+                  : d.proof_photo_path
+                    ? "bg-status-resolved text-status-resolved-foreground"
+                    : "bg-muted text-muted-foreground"
               }
             >
-              {d.sent_at ? "Sent" : "Draft"}
+              {d.sent_at ? (d.proof_photo_path ? "Sent · proof" : "Sent · no proof") : "Draft"}
             </Badge>
           )}
           fields={[
@@ -123,7 +134,7 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
             { key: "date", label: "Date", value: (d) => day(d.sent_at ?? d.created_at) },
             { key: "channel", label: "Sent via", value: (d) => d.channel?.replace("_", " ") ?? "—", hideInList: true },
           ]}
-          empty="No Digests yet."
+          empty={{ title: "No Digests yet", description: "The order is: draft, print the letter, send it, then log the send.", icon: Mail }}
         />
       </section>
     </>

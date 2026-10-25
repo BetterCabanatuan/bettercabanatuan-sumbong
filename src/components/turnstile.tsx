@@ -30,17 +30,22 @@ export function Turnstile({
   siteKey,
   language,
   onToken,
+  onFail,
   resetKey,
 }: {
   siteKey: string;
   language: string;
   onToken: (token: string | null) => void;
+  /** The script didn't load or the widget reported an error (not an ordinary token expiry). */
+  onFail?: () => void;
   resetKey?: number;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const onTokenRef = useRef(onToken);
+  const onFailRef = useRef(onFail);
   useEffect(() => {
     onTokenRef.current = onToken;
+    onFailRef.current = onFail;
   });
 
   useEffect(() => {
@@ -55,10 +60,16 @@ export function Turnstile({
           size: "flexible",
           callback: (token: string) => onTokenRef.current(token),
           "expired-callback": () => onTokenRef.current(null),
-          "error-callback": () => onTokenRef.current(null),
+          "error-callback": () => {
+            onTokenRef.current(null);
+            onFailRef.current?.();
+          },
         });
       })
-      .catch(() => onTokenRef.current(null));
+      .catch(() => {
+        onTokenRef.current(null);
+        onFailRef.current?.();
+      });
     return () => {
       cancelled = true;
       if (widgetId) window.turnstile?.remove(widgetId);

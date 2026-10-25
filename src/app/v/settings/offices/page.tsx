@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Building2, Plus } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { setOfficeActive } from "@/app/v/actions";
@@ -46,7 +46,7 @@ export default async function OfficesPage({ searchParams }: PageProps<"/v/settin
             label: "Scope",
             value: (office) => (office.scope === "per_barangay" ? "Per barangay" : "Citywide"),
           },
-          { key: "channel", label: "Channel", value: (office) => office.channel, hideInList: true },
+          { key: "channel", label: "Channel", value: (office) => office.channel, hideInList: true, clamp: true },
           { key: "contact", label: "Contact", value: (office) => [office.email, office.phone].filter(Boolean).join(" · ") || "—" },
         ]}
         actions={
@@ -58,7 +58,17 @@ export default async function OfficesPage({ searchParams }: PageProps<"/v/settin
               )
             : undefined
         }
-        empty="No Responsible Offices yet."
+        empty={{
+          title: "No Responsible Offices yet",
+          description: "Add the office a Report gets carried to, and how Volunteers reach it.",
+          icon: Building2,
+          action: can(me, "offices.add") ? (
+            <Button nativeButton={false} render={<Link href="/v/settings/offices/new" />}>
+              <Plus data-icon="inline-start" />
+              New office
+            </Button>
+          ) : undefined,
+        }}
       />
     </>
   );

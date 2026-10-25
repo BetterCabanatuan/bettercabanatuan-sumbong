@@ -28,7 +28,7 @@ export default async function RolePage({ params, searchParams }: PageProps<"/v/s
   const query = await searchParams;
 
   const supabase = await createClient();
-  const [{ data: permissionRows }, { data: roleRow }, { data: memberRows }] = await Promise.all([
+  const [{ data: permissionRows }, { data: roleRow }, { data: memberRows }, { data: otherRoleRows }] = await Promise.all([
     supabase.from("permissions").select("key, resource, action, label, description, sort_order").order("sort_order"),
     isNew
       ? Promise.resolve({ data: null })
@@ -36,11 +36,16 @@ export default async function RolePage({ params, searchParams }: PageProps<"/v/s
     isNew
       ? Promise.resolve({ data: [] })
       : supabase.from("volunteers").select("user_id, display_name").eq("role_id", id).eq("active", true).order("display_name"),
+    // For "Start from": every role but the one being edited.
+    supabase.from("roles").select("id, name, role_permissions(permission)").order("name"),
   ]);
   if (!isNew && !roleRow) notFound();
 
   const permissions = (permissionRows ?? []) as PermissionInfo[];
   const members = (memberRows ?? []) as { user_id: string; display_name: string }[];
+  const otherRoles = ((otherRoleRows ?? []) as Omit<RoleRow, "description">[])
+    .filter((r) => r.id !== roleRow?.id)
+    .map((r) => ({ id: r.id, name: r.name, permissions: r.role_permissions.map((p) => p.permission) }));
   const editable = isNew ? can(me, "roles.add") : can(me, "roles.edit");
   const isMine = roleRow?.id === me.role_id;
 
@@ -93,6 +98,10 @@ export default async function RolePage({ params, searchParams }: PageProps<"/v/s
               permissions={permissions}
               defaultSelected={roleRow?.role_permissions.map((p) => p.permission) ?? ["reports.view", "digests.view"]}
               disabled={!editable}
+              roles={otherRoles}
+              editing={!isNew}
+              memberCount={members.length}
+              isMine={isMine}
             />
           </CardContent>
           {editable && (

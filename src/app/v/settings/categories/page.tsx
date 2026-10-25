@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, Tags } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { setCategoryActive } from "@/app/v/actions";
@@ -64,7 +64,17 @@ export default async function CategoriesPage({ searchParams }: PageProps<"/v/set
               )
             : undefined
         }
-        empty="No Categories yet."
+        empty={{
+          title: "No Categories yet",
+          description: "Residents choose a Category when they report.",
+          icon: Tags,
+          action: can(me, "categories.add") ? (
+            <Button nativeButton={false} render={<Link href="/v/settings/categories/new" />}>
+              <Plus data-icon="inline-start" />
+              New Category
+            </Button>
+          ) : undefined,
+        }}
       />
     </>
   );

@@ -9,7 +9,8 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { ActionFieldError, ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { DigestProgress } from "@/components/volunteer/digest-progress";
 import { ProofUpload } from "@/components/volunteer/proof-upload";
 import { RemoveFromDigest } from "@/components/volunteer/remove-from-digest";
 import { can, requireVolunteer } from "@/lib/auth";
@@ -57,6 +58,7 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
           </Button>
         )}
       </div>
+      <DigestProgress sent={sent} hasProof={Boolean(digest.proof_photo_path)} />
       <p className="text-muted-foreground">
         Channel: <span className="text-foreground">{office.channel}</span>
         {office.email && ` · ${office.email}`}
@@ -77,7 +79,7 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={r.status} />
+                  <StatusBadge status={r.status} labels="en" />
                 </TableCell>
                 <TableCell className="max-w-72 truncate">{r.title ?? categories.find((c) => c.id === r.category_id)?.name_en}</TableCell>
                 <TableCell className="text-muted-foreground">{barangays.find((b) => b.id === r.barangay_id)?.name}</TableCell>
@@ -115,7 +117,6 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
           {can(me, "digests.send") && (
             <Card>
               <ActionForm
-                schema="sendDigest"
                 action={sendDigest.bind(null, digest.id)}
                 className="contents"
                 success="Logged. The Reports are now Forwarded and Followers were notified."
@@ -135,18 +136,15 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
                           </NativeSelectOption>
                         ))}
                       </NativeSelect>
-                      <ActionFieldError name="channel" />
                     </Field>
                     <Field>
                       <FieldLabel htmlFor="channel_detail">Details</FieldLabel>
                       <Input id="channel_detail" name="channel_detail" maxLength={300} />
                       <FieldDescription>e.g. “Received by Mayor’s Office receiving clerk”, an email subject, a reference number.</FieldDescription>
-                      <ActionFieldError name="channel_detail" />
                     </Field>
                     <Field>
                       <FieldLabel htmlFor="sent_at">Sent at (Manila time)</FieldLabel>
                       <Input id="sent_at" name="sent_at" type="datetime-local" defaultValue={manilaNow()} max={manilaNow()} />
-                      <ActionFieldError name="sent_at" />
                     </Field>
                   </FieldGroup>
                 </CardContent>

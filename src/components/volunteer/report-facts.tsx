@@ -1,6 +1,5 @@
 import { ReportsMap } from "@/components/map";
 import { Card, CardContent } from "@/components/ui/card";
-import { STATUS_MARKER } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import type { Barangay, Category, Report, ReportAnswer } from "@/lib/types";
 
@@ -52,15 +51,16 @@ export function ReportFacts({
       <Card size="sm" className="min-h-72 py-0">
         <ReportsMap
           className="size-full min-h-72"
+          legend={false}
           reports={[
             {
               id: report.id,
               code: report.public_code,
               lat: report.lat,
               lng: report.lng,
-              color: STATUS_MARKER[report.status],
+              status: report.status,
               title: report.title ?? category?.name_en ?? report.public_code,
-              statusLabel: report.status,
+              categoryIcon: category?.icon ?? "circle-alert",
             },
           ]}
         />

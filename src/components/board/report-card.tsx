@@ -26,6 +26,11 @@ export function ReportCard({ report, lookups }: { report: Report; lookups: Board
   const officeName = office ? localized(office, "name", locale) : "";
   const pressed = mine?.has(report.id) ?? false;
 
+  // "Updated …" only when the status line has no time of its own, so two time phrases never stack.
+  const progressHasTime =
+    (report.status === "forwarded" && !!report.first_forwarded_at) || (report.status === "resolved" && !!report.resolved_at);
+  const touched = new Date(report.last_activity_at).getTime() - new Date(report.created_at).getTime() > 60_000;
+
   const progress =
     report.status === "forwarded" && report.first_forwarded_at
       ? t("meta.forwarded", { office: officeName, when: format.relativeTime(new Date(report.first_forwarded_at)) })
@@ -36,9 +41,11 @@ export function ReportCard({ report, lookups }: { report: Report; lookups: Board
           : report.status === "reopened"
             ? t("meta.reopened")
             : null;
+  const updated =
+    !progressHasTime && touched ? t("meta.updated", { when: format.relativeTime(new Date(report.last_activity_at)) }) : null;
 
   return (
-    <article className="flex gap-4 rounded-xl border bg-card p-4 text-card-foreground">
+    <article className="flex gap-4 rounded-xl border bg-card p-4 text-card-foreground transition-[translate,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <VoteButton
         count={report.me_too_count}
         pressed={pressed}
@@ -61,7 +68,7 @@ export function ReportCard({ report, lookups }: { report: Report; lookups: Board
           </Link>
         </h2>
         <p className="text-sm text-muted-foreground">
-          {[barangay && t("barangay", { name: barangay.name }), progress].filter(Boolean).join(" · ")}
+          {[barangay && t("barangay", { name: barangay.name }), progress, updated].filter(Boolean).join(" · ")}
         </p>
       </div>
     </article>

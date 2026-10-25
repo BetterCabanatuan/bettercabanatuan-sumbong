@@ -1,13 +1,15 @@
+import { Users } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { cancelInvitation, inviteVolunteer, setUserAccess } from "@/app/v/actions";
+import { cancelInvitation, inviteVolunteer } from "@/app/v/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { ActionFieldError, ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { AccessForm } from "@/components/volunteer/access-form";
+import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import { DataView } from "@/components/volunteer/data-view";
 import { ListHeader } from "@/components/volunteer/list-header";
 import { type VolunteerAccess, can, requirePermission } from "@/lib/auth";
@@ -19,6 +21,13 @@ const PAGE_SIZE = 50;
 
 function day(iso: string | null) {
   return iso ? new Date(iso).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" }) : "Never";
+}
+
+/** "today", "3 days ago": how long ago an invitation went out. */
+function ago(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days < 1) return "today";
+  return days === 1 ? "yesterday" : `${days} days ago`;
 }
 
 export default async function UsersPage({ searchParams }: PageProps<"/v/settings/users">) {
@@ -85,21 +94,22 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ActionForm schema="invite" action={inviteVolunteer} success="Invited." className="flex flex-col gap-4">
+            <ActionForm action={inviteVolunteer} success="Invited. Inviting the same address again sends its email again." className="flex flex-col gap-4">
               <FieldGroup className="grid items-end gap-4 sm:grid-cols-[2fr_2fr_1fr_auto]">
                 <Field>
                   <FieldLabel htmlFor="invite-email">Email</FieldLabel>
                   <Input id="invite-email" name="email" type="email" required />
-                  <ActionFieldError name="email" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="invite-name">Display name</FieldLabel>
                   <Input id="invite-name" name="display_name" />
-                  <ActionFieldError name="display_name" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="invite-role">Role</FieldLabel>
-                  <NativeSelect id="invite-role" name="role_id" defaultValue={roleList.find((r) => r.name === "Volunteer")?.id}>
+                  <NativeSelect id="invite-role" name="role_id" required defaultValue={roleList.find((r) => r.name === "Volunteer")?.id ?? ""}>
+                    <NativeSelectOption value="" disabled>
+                      Choose a role
+                    </NativeSelectOption>
                     {roleList.map((role) => (
                       <NativeSelectOption key={role.id} value={role.id}>
                         {role.name}
@@ -129,9 +139,10 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             titleLabel="Email"
             title={(invitation) => invitation.email}
             subtitle={(invitation) => invitation.display_name}
+            badges={() => <Badge variant="outline">Invited</Badge>}
             fields={[
               { key: "role", label: "Role", value: (invitation) => roleNames.get(invitation.role_id) },
-              { key: "invited", label: "Invited", value: (invitation) => day(invitation.created_at) },
+              { key: "invited", label: "Invited", value: (invitation) => ago(invitation.created_at) },
             ]}
             actions={
               can(me, "users.add")
@@ -156,13 +167,13 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             All accounts
           </Button>
         </nav>
-        <form method="get" className="flex items-end gap-2">
+        <form method="get" className="flex w-full items-end gap-2 sm:w-auto">
           {all && <input type="hidden" name="show" value="all" />}
-          <Field>
+          <Field className="min-w-0 flex-1 sm:w-72 sm:flex-none">
             <FieldLabel htmlFor="user-search" className="sr-only">
               Search by email or name
             </FieldLabel>
-            <Input id="user-search" name="q" type="search" placeholder="Search by email or name" defaultValue={q} />
+            <Input id="user-search" name="q" type="search" placeholder="Search name or email" defaultValue={q} />
           </Field>
           <Button type="submit" variant="outline">
             Search
@@ -193,7 +204,22 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
         ]}
         actionsLabel="Role and access"
         actions={(account) => <AccessControl account={account} me={me} roles={roleList} />}
-        empty={q ? "Nobody matches." : "No accounts yet."}
+        empty={
+          q
+            ? {
+                title: `Nothing matches “${q}”`,
+                description: "Check the spelling, or search by email.",
+                icon: Users,
+                action: (
+                  <Button variant="outline" nativeButton={false} render={<Link href={href({ q: null, page: null })} />}>
+                    Clear search
+                  </Button>
+                ),
+              }
+            : all
+              ? { title: "No accounts yet", description: "People appear here after they sign in or accept an invitation.", icon: Users }
+              : { title: "No Volunteers yet", description: "Invite someone above and choose their role.", icon: Users }
+        }
       />
 
       {pages > 1 && (
@@ -240,22 +266,16 @@ function AccessControl({
   if (account.user_id === me.user_id || (!canChangeRole && !canRemove)) return null;
 
   const choices = canChangeRole ? roles : roles.filter((role) => role.id === current);
+  const showNone = !account.active || canRemove;
   return (
-    <ActionForm schema="userAccess" action={setUserAccess} success="Saved." className="flex flex-wrap items-center gap-2">
-      <input type="hidden" name="user_id" value={account.user_id} />
-      <NativeSelect name="role_id" defaultValue={current ?? "none"} aria-label={`Role for ${account.display_name ?? account.email}`}>
-        {(!account.active || canRemove) && (
-          <NativeSelectOption value="none">
-            {account.role_name && !account.active ? `No access (was ${account.role_name})` : "No access"}
-          </NativeSelectOption>
-        )}
-        {choices.map((role) => (
-          <NativeSelectOption key={role.id} value={role.id}>
-            {role.name}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
-      <SubmitButton variant="outline">Save</SubmitButton>
-    </ActionForm>
+    <AccessForm
+      key={`${account.user_id}:${current}`}
+      userId={account.user_id}
+      name={account.display_name ?? account.email ?? "this person"}
+      current={current}
+      active={account.active}
+      noAccessLabel={showNone ? (account.role_name && !account.active ? `No access (was ${account.role_name})` : "No access") : null}
+      roles={choices}
+    />
   );
 }
