@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, ShieldCheck } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -91,7 +91,17 @@ export default async function RolesPage({ searchParams }: PageProps<"/v/settings
             {can(me, "roles.edit") ? "Edit" : "View"}
           </Button>
         )}
-        empty="No roles yet."
+        empty={{
+          title: "No roles yet",
+          description: "A role is a set of permissions. Create one, then give it to a Volunteer when you invite them.",
+          icon: ShieldCheck,
+          action: can(me, "roles.add") ? (
+            <Button nativeButton={false} render={<Link href="/v/settings/roles/new" />}>
+              <Plus data-icon="inline-start" />
+              New role
+            </Button>
+          ) : undefined,
+        }}
       />
     </>
   );

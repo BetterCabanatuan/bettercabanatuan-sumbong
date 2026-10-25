@@ -1,3 +1,4 @@
+import { Users } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { cancelInvitation, inviteVolunteer, setUserAccess } from "@/app/v/actions";
@@ -97,7 +98,10 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="invite-role">Role</FieldLabel>
-                  <NativeSelect id="invite-role" name="role_id" defaultValue={roleList.find((r) => r.name === "Volunteer")?.id}>
+                  <NativeSelect id="invite-role" name="role_id" required defaultValue={roleList.find((r) => r.name === "Volunteer")?.id ?? ""}>
+                    <NativeSelectOption value="" disabled>
+                      Choose a role
+                    </NativeSelectOption>
                     {roleList.map((role) => (
                       <NativeSelectOption key={role.id} value={role.id}>
                         {role.name}
@@ -154,13 +158,13 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             All accounts
           </Button>
         </nav>
-        <form method="get" className="flex items-end gap-2">
+        <form method="get" className="flex w-full items-end gap-2 sm:w-auto">
           {all && <input type="hidden" name="show" value="all" />}
-          <Field>
+          <Field className="min-w-0 flex-1 sm:w-72 sm:flex-none">
             <FieldLabel htmlFor="user-search" className="sr-only">
               Search by email or name
             </FieldLabel>
-            <Input id="user-search" name="q" type="search" placeholder="Search by email or name" defaultValue={q} />
+            <Input id="user-search" name="q" type="search" placeholder="Search name or email" defaultValue={q} />
           </Field>
           <Button type="submit" variant="outline">
             Search
@@ -191,7 +195,22 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
         ]}
         actionsLabel="Role and access"
         actions={(account) => <AccessControl account={account} me={me} roles={roleList} />}
-        empty={q ? "Nobody matches." : "No accounts yet."}
+        empty={
+          q
+            ? {
+                title: `Nothing matches “${q}”`,
+                description: "Check the spelling, or search by email.",
+                icon: Users,
+                action: (
+                  <Button variant="outline" nativeButton={false} render={<Link href={href({ q: null, page: null })} />}>
+                    Clear search
+                  </Button>
+                ),
+              }
+            : all
+              ? { title: "No accounts yet", description: "People appear here after they sign in or accept an invitation.", icon: Users }
+              : { title: "No Volunteers yet", description: "Invite someone above and choose their role.", icon: Users }
+        }
       />
 
       {pages > 1 && (

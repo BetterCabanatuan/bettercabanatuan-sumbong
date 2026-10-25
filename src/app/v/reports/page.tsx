@@ -1,4 +1,6 @@
+import { FileText } from "lucide-react";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -9,7 +11,7 @@ import { can, requirePermission } from "@/lib/auth";
 import { byId, getBarangays, getCategories, getOffices, getReports } from "@/lib/data";
 import { resolveView } from "@/lib/data-view";
 import { parseReportFilters, reportFiltersToSearch } from "@/lib/report-filters";
-import { STATUS_ORDER } from "@/lib/status";
+import { STATUS_LABEL_EN, STATUS_ORDER } from "@/lib/status";
 
 function day(iso: string) {
   return new Date(iso).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" });
@@ -31,6 +33,7 @@ export default async function VolunteerReportsPage({ searchParams }: PageProps<"
   const officesById = byId(offices);
   const barangaysById = byId(barangays);
   const status = filters.statuses?.[0];
+  const filtered = Boolean(status || filters.officeId || filters.barangayId);
 
   return (
     <>
@@ -48,7 +51,7 @@ export default async function VolunteerReportsPage({ searchParams }: PageProps<"
             <NativeSelectOption value="">All statuses</NativeSelectOption>
             {STATUS_ORDER.map((s) => (
               <NativeSelectOption key={s} value={s}>
-                {s.replace("_", " ")}
+                {STATUS_LABEL_EN[s]}
               </NativeSelectOption>
             ))}
           </NativeSelect>
@@ -90,7 +93,7 @@ export default async function VolunteerReportsPage({ searchParams }: PageProps<"
         href={(r) =>
           r.status === "pending_review" && can(me, "reports.review") ? `/v/review/${r.id}` : `/v/reports/${r.id}`
         }
-        badges={(r) => <StatusBadge status={r.status} />}
+        badges={(r) => <StatusBadge status={r.status} labels="en" />}
         fields={[
           { key: "office", label: "Office", value: (r) => (r.office_id ? officesById.get(r.office_id)?.short_name : "—") },
           {
@@ -101,7 +104,29 @@ export default async function VolunteerReportsPage({ searchParams }: PageProps<"
           { key: "submitted", label: "Submitted", value: (r) => day(r.created_at), hideInList: true },
           { key: "metoo", label: "Me Too", numeric: true, value: (r) => r.me_too_count },
         ]}
-        empty="No Reports match."
+        empty={
+          filtered
+            ? {
+                title: "No Reports match these filters",
+                description: "Try a different Status, Office or Barangay.",
+                icon: FileText,
+                action: (
+                  <Button variant="outline" nativeButton={false} render={<Link href="/v/reports" />}>
+                    Clear filters
+                  </Button>
+                ),
+              }
+            : {
+                title: "No Reports yet",
+                description: "Reports show up here once residents submit them from the public form.",
+                icon: FileText,
+                action: (
+                  <Button variant="outline" nativeButton={false} render={<Link href="/report" />}>
+                    Open the public form
+                  </Button>
+                ),
+              }
+        }
       />
     </>
   );
