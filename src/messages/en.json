@@ -113,7 +113,7 @@
     },
     "done": {
       "title": "Report sent. Salamat!",
-      "lead": "A volunteer will review it soon. This is your report code.",
+      "lead": "This is your report code.",
       "saveLink": "Save this private link to check your report and reopen it if it isn’t really fixed:",
       "copy": "Copy link",
       "copied": "Copied",
@@ -122,7 +122,14 @@
       "meTooLead": "More residents reporting the same problem helps it get attention.",
       "share": "Send the link to yourself",
       "shareTitle": "My Sumbong report {code}",
-      "savedHere": "It’s also saved on this device under <link>My reports</link>."
+      "savedHere": "It’s also saved on this device under <link>My reports</link>.",
+      "nextTitle": "What happens next",
+      "next1": "A volunteer checks your photos and location. Faces and plate numbers are blurred.",
+      "next2": "Once approved, it appears on the public board and other residents can tap “Me too”.",
+      "next3": "A volunteer carries it to the right office. You’ll see each step on your report page.",
+      "updatesEmail": "We’ll email you when its status changes.",
+      "another": "Make another report",
+      "volunteer": "Run by volunteers, not the City Government."
     },
     "urgent": "Emergency first",
     "review": {
@@ -135,12 +142,37 @@
       "details": "Title and description",
       "noDetails": "None added",
       "edit": "Edit",
-      "editLabel": "Edit {section}"
+      "editLabel": "Edit {section}",
+      "commit": "Nothing is sent until you press the button below. A volunteer reviews your report before it appears on the board."
     },
     "draft": {
       "restored": "We brought back the report you hadn’t finished.",
       "startOver": "Start over"
-    }
+    },
+    "blocked": {
+      "pin": "Place the pin on the map first.",
+      "category": "Choose the kind of problem.",
+      "answer": "Answer the required question: “{prompt}”.",
+      "photo": "Add at least 1 photo.",
+      "captcha": "Wait a moment while we check you’re not a bot."
+    },
+    "intro": {
+      "ready": "Have a photo ready, and be near the problem.",
+      "volunteer": "Run by BetterCabanatuan volunteers, not the City Government. We review each report and carry it to the right office.",
+      "how": "How it works"
+    },
+    "captcha": {
+      "checking": "Checking you’re not a bot…",
+      "failed": "We couldn’t check. Tap to try again.",
+      "retry": "Try again"
+    },
+    "gotoStep": "Go to {step}",
+    "steps": {
+      "location": "location",
+      "category": "category",
+      "details": "photos and details"
+    },
+    "errorTitle": "Error: "
   },
   "reportPage": {
     "statusExplainer": {
@@ -219,7 +251,16 @@
     "error": "We couldn’t send the link. Check the address and try again.",
     "denied": "This account isn’t a volunteer account. Ask a Coordinator for an invitation.",
     "linkError": "That sign-in link is invalid or expired. Please request a new one.",
-    "sentTitle": "Check your email"
+    "sentTitle": "Check your email",
+    "wrong": "Wrong email? Change it",
+    "resend": "Send the link again",
+    "resendIn": "Send again in {seconds}s",
+    "spam": "Can’t find it? Check your spam folder. It comes from BetterCabanatuan Sumbong.",
+    "otherApp": "If the link opens in another app, copy it into your usual browser.",
+    "didYouMean": "Did you mean {email}?",
+    "rateLimited": "Too many emails sent. Please wait a while before asking for another link.",
+    "failed": "We couldn’t send the link right now. Please try again.",
+    "newLink": "Send a new link"
   },
   "me": {
     "title": "My reports",
