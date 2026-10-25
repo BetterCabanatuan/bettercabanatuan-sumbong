@@ -36,8 +36,19 @@ export function parseBoardFilters(params: Record<string, string | string[] | und
   };
 }
 
-export function boardFiltersToSearch(filters: BoardFilters): string {
+/**
+ * List or map. Lives in the URL (`?mode=map`) so Back works and a map view can be shared, but
+ * stays out of `BoardFilters` and the query keys: switching modes must not refetch either list.
+ */
+export type BoardMode = "list" | "map";
+
+export function parseBoardMode(params: Record<string, string | string[] | undefined>): BoardMode {
+  return params.mode === "map" ? "map" : "list";
+}
+
+export function boardFiltersToSearch(filters: BoardFilters, mode: BoardMode = "list"): string {
   const search = new URLSearchParams();
+  if (mode === "map") search.set("mode", "map");
   if (filters.view !== "open") search.set("view", filters.view);
   if (filters.sort !== "top") search.set("sort", filters.sort);
   if (filters.category) search.set("category", filters.category);
@@ -86,6 +97,8 @@ export interface MapPoint {
   id: string;
   public_code: string;
   category_id: string;
+  barangay_id: number | null;
+  me_too_count: number;
   title: string | null;
   lat: number;
   lng: number;
@@ -99,7 +112,7 @@ export async function fetchMapPoints(
 ): Promise<MapPoint[]> {
   let query = supabase
     .from("reports_view")
-    .select("id, public_code, category_id, title, lat, lng, status")
+    .select("id, public_code, category_id, barangay_id, title, lat, lng, status, me_too_count")
     .in("status", BOARD_VIEWS[filters.view])
     .order("created_at", { ascending: false })
     .limit(1000);
