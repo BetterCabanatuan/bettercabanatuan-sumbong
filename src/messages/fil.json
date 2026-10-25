@@ -35,6 +35,11 @@
     "next": "Susunod",
     "submit": "Ipadala",
     "optional": "(hindi kailangan)",
+    "emergency": {
+      "title": "Emergency?",
+      "body": "May kuryenteng kable, baha na may taong nanganganib, o sunog? Huwag nang gamitin ang form na ito. Tumawag agad sa CDRRMO.",
+      "call": "Tawagan ang 0908-881-1010"
+    },
     "yes": "Oo",
     "no": "Hindi",
     "errors": {
