@@ -82,7 +82,7 @@ function SelectionBar() {
   useEffect(() => {
     if (count === 0) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape" || event.defaultPrevented || isTypingTarget(event.target as HTMLElement)) return;
+      if (event.key !== "Escape" || event.defaultPrevented || isTypingTarget(event.target)) return;
       if (document.querySelector('[role="dialog"]')) return;
       clear();
     }

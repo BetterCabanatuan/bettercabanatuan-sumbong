@@ -11,14 +11,15 @@ export interface KeyLike {
   altKey?: boolean;
   shiftKey?: boolean;
   isComposing?: boolean;
-  target?: { tagName?: string; isContentEditable?: boolean } | null;
+  target?: EventTarget | { tagName?: string; isContentEditable?: boolean } | null;
 }
 
 /** An element the user types into: single-key shortcuts must never fire from here. */
 export function isTypingTarget(target: KeyLike["target"]): boolean {
   if (!target) return false;
-  if (target.isContentEditable) return true;
-  const tag = target.tagName?.toUpperCase();
+  const element = target as { tagName?: string; isContentEditable?: boolean };
+  if (element.isContentEditable) return true;
+  const tag = element.tagName?.toUpperCase();
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 }
 
