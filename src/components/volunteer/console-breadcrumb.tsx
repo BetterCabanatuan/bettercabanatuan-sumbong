@@ -21,12 +21,12 @@ export function ConsoleBreadcrumb() {
       <BreadcrumbList className="flex-nowrap">
         {crumbs.map((crumb, i) => (
           <Fragment key={crumb.href}>
-            {i > 0 && <BreadcrumbSeparator className="hidden sm:block" />}
-            <BreadcrumbItem className={i === crumbs.length - 1 ? "min-w-0" : "hidden sm:inline-flex"}>
+            {i > 0 && <BreadcrumbSeparator className={i < crumbs.length - 1 ? "hidden sm:block" : undefined} />}
+            <BreadcrumbItem className={i >= crumbs.length - 2 ? "min-w-0" : "hidden sm:inline-flex"}>
               {i === crumbs.length - 1 ? (
                 <BreadcrumbPage className="truncate font-medium">{crumb.label}</BreadcrumbPage>
               ) : (
-                // Phones show only the page itself, so the topbar never wraps.
+                // Phones show the page and its parent only, so the topbar never wraps.
                 <BreadcrumbLink render={<Link href={crumb.href} />}>{crumb.label}</BreadcrumbLink>
               )}
             </BreadcrumbItem>
