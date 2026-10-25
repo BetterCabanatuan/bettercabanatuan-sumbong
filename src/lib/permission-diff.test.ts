@@ -64,6 +64,11 @@ describe("diffPermissions and describeChanges", () => {
     expect(describeChanges(diff, 1)).toContain("1 person now");
   });
 
+  it("shortens a long list to the first few and a count", () => {
+    const diff = diffPermissions(set(), new Set(universe));
+    expect(describeChanges(diff, 0, 2)).toBe("Adding: View Reports, Edit Reports, and 27 more.");
+  });
+
   it("sameSet compares members, not order", () => {
     expect(sameSet(set("reports.view", "digests.view"), set("digests.view", "reports.view"))).toBe(true);
     expect(sameSet(set("reports.view"), set("digests.view"))).toBe(false);

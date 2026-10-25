@@ -117,7 +117,7 @@ export function PermissionMatrix({
       {!disabled && roles.length > 0 && (
         <Field className="gap-1.5">
           <FieldLabel htmlFor="role-start-from">Start from</FieldLabel>
-          <NativeSelect id="role-start-from" value={source} onChange={(event) => chooseSource(event.target.value)}>
+          <NativeSelect id="role-start-from" className="w-full sm:w-64" value={source} onChange={(event) => chooseSource(event.target.value)}>
             <NativeSelectOption value="">Blank</NativeSelectOption>
             {roles.map((role) => (
               <NativeSelectOption key={role.id} value={role.id}>

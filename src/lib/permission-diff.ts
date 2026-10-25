@@ -69,11 +69,17 @@ export function permissionName(key: Permission): string {
   return `${actionLabel} ${areaLabel}`;
 }
 
+/** "Export Reports, Send Digests, and 3 more": at most `limit` names. */
+function nameList(keys: Permission[], limit: number): string {
+  const names = keys.slice(0, limit).map(permissionName).join(", ");
+  return keys.length > limit ? `${names}, and ${keys.length - limit} more` : names;
+}
+
 /** The pending-changes sentence, or "" when nothing changed. `people` is how many active people hold the role. */
-export function describeChanges(diff: { added: Permission[]; removed: Permission[] }, people = 0): string {
+export function describeChanges(diff: { added: Permission[]; removed: Permission[] }, people = 0, limit = 6): string {
   const parts: string[] = [];
-  if (diff.added.length > 0) parts.push(`Adding: ${diff.added.map(permissionName).join(", ")}.`);
-  if (diff.removed.length > 0) parts.push(`Removing: ${diff.removed.map(permissionName).join(", ")}.`);
+  if (diff.added.length > 0) parts.push(`Adding: ${nameList(diff.added, limit)}.`);
+  if (diff.removed.length > 0) parts.push(`Removing: ${nameList(diff.removed, limit)}.`);
   if (parts.length === 0) return "";
   if (people > 0) parts.push(`This affects ${people} ${people === 1 ? "person" : "people"} now.`);
   return parts.join(" ");

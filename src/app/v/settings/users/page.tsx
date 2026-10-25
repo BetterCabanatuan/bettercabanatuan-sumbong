@@ -142,7 +142,7 @@ export default async function UsersPage({ searchParams }: PageProps<"/v/settings
             badges={() => <Badge variant="outline">Invited</Badge>}
             fields={[
               { key: "role", label: "Role", value: (invitation) => roleNames.get(invitation.role_id) },
-              { key: "invited", label: "Invited", value: (invitation) => `${day(invitation.created_at)} (${ago(invitation.created_at)})` },
+              { key: "invited", label: "Invited", value: (invitation) => ago(invitation.created_at) },
             ]}
             actions={
               can(me, "users.add")
