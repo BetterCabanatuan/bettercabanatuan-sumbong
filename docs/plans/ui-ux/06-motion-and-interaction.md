@@ -31,4 +31,11 @@ Make the app feel modern and responsive without making it heavy. Residents are o
 | Sonner | toasts (already installed) | — |
 | GSAP | not used: it adds ~70 KB for timeline-style choreography this product doesn't need | — |
 
-"bencho.dev" was named in the request but could not be identified (no matching site or package was found), so no component was taken from it; the Magic UI, Emil Kowalski-style and Base UI pieces above cover the same ground.
+bencho.dev (https://bencho.dev) is a library of interactive React blocks and micro-interactions built on Framer Motion (`motion`), organised by interaction: drag, press, hover, loading, loop and type. Its site lists the blocks but not an install path, so nothing is copied from it; we take the *patterns* that fit a civic tool and build them in CSS:
+
+| bencho.dev block | Used here as | Where |
+| --- | --- | --- |
+| Form error | a 2-frame sideways nudge on the blocked "Susunod" message | `/report` steps (spec 2) |
+| Shimmer / image shimmer | a slow highlight sweep on skeletons | board list, map, console cards |
+| Press (button feedback) | `active:scale-[0.97]` on primary buttons, already used on the Ako rin button | buttons |
+| Pull to refresh, Confetti, Tilt card, Dock, Particles, Page peel, Swipe deck | **not used**: too playful for reporting a hazard, and each adds weight | — |
