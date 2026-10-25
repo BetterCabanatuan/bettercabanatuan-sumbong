@@ -42,9 +42,15 @@ export function useBoardNavigation(filters: BoardFilters) {
     const base = requested ?? { filters, mode };
     const next = { filters: { ...base.filters, ...filterPatch }, mode: nextMode ?? base.mode };
     requested = next;
-    startTransition(() =>
-      router.replace(`${pathname}${boardFiltersToSearch(next.filters, next.mode)}`, { scroll: false }),
-    );
+    const url = `${pathname}${boardFiltersToSearch(next.filters, next.mode)}`;
+    if (Object.keys(filterPatch).length === 0) {
+      // Only the view changed: the server has nothing new to render, so update the URL in place
+      // (Next syncs `useSearchParams`) and the switch is instant.
+      window.history.replaceState(null, "", url);
+      requested = null;
+      return;
+    }
+    startTransition(() => router.replace(url, { scroll: false }));
   };
   return { update, pending, mode };
 }
@@ -118,7 +124,7 @@ function FilterControls({ filters, lookups }: { filters: BoardFilters; lookups: 
 export function BoardFilterRail({ filters, lookups }: { filters: BoardFilters; lookups: BoardLookups }) {
   const t = useTranslations("board");
   return (
-    <aside className="hidden w-56 shrink-0 lg:block" aria-label={t("filters.title")}>
+    <aside className="hidden w-56 shrink-0 lg:block lg:group-data-[mode=map]/board:hidden" aria-label={t("filters.title")}>
       <div className="sticky top-24">
         <FilterControls filters={filters} lookups={lookups} />
       </div>

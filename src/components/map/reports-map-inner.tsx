@@ -65,7 +65,7 @@ function pinIcon(status: ReportStatus, categoryIcon: string, active: boolean): L
   return icon;
 }
 
-function ReportMarker({ report }: { report: MapReport }) {
+function ReportMarker({ report, onSelect }: { report: MapReport; onSelect?: (id: string) => void }) {
   const t = useTranslations("board");
   const tStatus = useTranslations("status");
   const active = useHighlightedReport() === report.id;
@@ -79,32 +79,37 @@ function ReportMarker({ report }: { report: MapReport }) {
       zIndexOffset={active ? 1000 : report.status === "resolved" ? -100 : 0}
       eventHandlers={{
         add: (event) => event.target.getElement()?.setAttribute("aria-label", label),
-        click: () => setSelectedReport(report.id),
+        click: () => {
+          setSelectedReport(report.id);
+          onSelect?.(report.id);
+        },
       }}
     >
-      <Popup minWidth={200} maxWidth={280}>
-        <div className="flex max-w-full flex-col items-start gap-1.5 text-sm [overflow-wrap:anywhere]">
-          <StatusBadge status={report.status} />
-          <p className="text-base leading-snug font-semibold text-balance">{report.title}</p>
-          {report.categoryName && (
-            <p className="inline-flex items-center gap-1 text-muted-foreground">
-              <CategoryIcon icon={report.categoryIcon} className="size-3.5 shrink-0" />
-              {report.categoryName}
-            </p>
-          )}
-          {report.barangay && <p className="text-muted-foreground">{t("barangay", { name: report.barangay })}</p>}
-          {typeof report.meToo === "number" && (
-            <p className="text-muted-foreground">{t("meTooLabel", { count: report.meToo })}</p>
-          )}
-          <Link
-            href={`/r/${report.code}`}
-            aria-label={t("map.reportLink", { code: report.code })}
-            className="font-mono font-medium text-primary underline"
-          >
-            {report.code}
-          </Link>
-        </div>
-      </Popup>
+      {!onSelect && (
+        <Popup minWidth={200} maxWidth={280}>
+          <div className="flex max-w-full flex-col items-start gap-1.5 text-sm [overflow-wrap:anywhere]">
+            <StatusBadge status={report.status} />
+            <p className="text-base leading-snug font-semibold text-balance">{report.title}</p>
+            {report.categoryName && (
+              <p className="inline-flex items-center gap-1 text-muted-foreground">
+                <CategoryIcon icon={report.categoryIcon} className="size-3.5 shrink-0" />
+                {report.categoryName}
+              </p>
+            )}
+            {report.barangay && <p className="text-muted-foreground">{t("barangay", { name: report.barangay })}</p>}
+            {typeof report.meToo === "number" && (
+              <p className="text-muted-foreground">{t("meTooLabel", { count: report.meToo })}</p>
+            )}
+            <Link
+              href={`/r/${report.code}`}
+              aria-label={t("map.reportLink", { code: report.code })}
+              className="font-mono font-medium text-primary underline"
+            >
+              {report.code}
+            </Link>
+          </div>
+        </Popup>
+      )}
     </Marker>
   );
 }
@@ -123,6 +128,23 @@ function FitToReports({ reports, maxZoom }: { reports: MapReport[]; maxZoom: num
     // `signature` stands for `reports`: refit only when the set changes, not on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, signature, maxZoom]);
+  return null;
+}
+
+/**
+ * Leaflet only listens for Esc while the map container itself has focus, but a keyboard user is
+ * focused on a marker (a child), so Esc would do nothing. Listen on the container for it.
+ */
+function CloseOnEscape() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") map.closePopup();
+    };
+    container.addEventListener("keydown", onKeyDown);
+    return () => container.removeEventListener("keydown", onKeyDown);
+  }, [map]);
   return null;
 }
 
@@ -172,12 +194,15 @@ export default function ReportsMapInner({
   className,
   legend = true,
   maxZoom = FIT_MAX_ZOOM,
+  onSelect,
 }: {
   reports: MapReport[];
   className?: string;
   /** The key of statuses; off for a map that shows one Report. */
   legend?: boolean;
   maxZoom?: number;
+  /** When set, a tapped marker calls this instead of opening a popup (the phone bottom sheet). */
+  onSelect?: (id: string) => void;
 }) {
   const t = useTranslations("board");
   const present = useMemo(() => {
@@ -201,10 +226,11 @@ export default function ReportsMapInner({
         <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
         <MarkerClusterGroup chunkedLoading animate={animate} animateAddingMarkers={false}>
           {reports.map((report) => (
-            <ReportMarker key={report.id} report={report} />
+            <ReportMarker key={report.id} report={report} onSelect={onSelect} />
           ))}
         </MarkerClusterGroup>
         <FitToReports reports={reports} maxZoom={maxZoom} />
+        <CloseOnEscape />
       </MapContainer>
       {legend && present.length > 0 && <Legend statuses={present} />}
       {reports.length === 0 && (

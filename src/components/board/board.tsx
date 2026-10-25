@@ -5,7 +5,7 @@ import { Inbox } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { type MapReport, ReportsMap } from "@/components/map";
 import { setHoveredReport, useSelectedReport } from "@/components/map/map-focus";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   boardListOptions,
   boardMapOptions,
   parseBoardFilters,
+  parseBoardMode,
 } from "@/lib/board";
 import { localized } from "@/i18n/config";
 import { reportTitle } from "@/lib/report-title";
@@ -27,8 +28,23 @@ import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { BoardFilterSheet, useBoardNavigation } from "./board-filters";
+import { MapSheet } from "./map-sheet";
 import { ReportCard } from "./report-card";
 import type { BoardLookups } from "./types";
+
+/**
+ * The page's `<main>`, tagged with the current mode so the side columns can step aside in the map
+ * view with CSS alone (`group-data-[mode=map]/board:`), without a server round trip.
+ */
+export function BoardModeScope({ className, children }: { className?: string; children: React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const mode = parseBoardMode({ mode: searchParams.get("mode") ?? undefined });
+  return (
+    <main data-mode={mode} className={cn("group/board", className)}>
+      {children}
+    </main>
+  );
+}
 
 /** Re-renders when a media query flips; false on the server, so the first paint is the single-pane layout. */
 function useMediaQuery(query: string) {
@@ -226,6 +242,9 @@ function BoardMap({ supabase, filters, categoryId, lookups, className }: QueryPr
   const t = useTranslations("board");
   const locale = useLocale() as Locale;
   const query = useQuery(boardMapOptions(supabase, filters, categoryId));
+  // Below `lg` a tapped marker opens a bottom sheet; from `lg` up the popup does the job.
+  const compact = !useMediaQuery("(min-width: 1024px)");
+  const [picked, setPicked] = useState<string | null>(null);
 
   const markers: MapReport[] = (query.data ?? []).map((point) => {
     const category = lookups.categories.find((c) => c.id === point.category_id);
@@ -264,8 +283,9 @@ function BoardMap({ supabase, filters, categoryId, lookups, className }: QueryPr
           </EmptyContent>
         </Empty>
       ) : (
-        <ReportsMap reports={markers} className="size-full" />
+        <ReportsMap reports={markers} className="size-full" onSelect={compact ? setPicked : undefined} />
       )}
+      {compact && <MapSheet report={markers.find((m) => m.id === picked) ?? null} onClose={() => setPicked(null)} />}
     </div>
   );
 }

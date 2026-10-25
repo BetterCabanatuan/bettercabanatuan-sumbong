@@ -260,8 +260,20 @@
     scale: 1.15;
   }
 }
-.leaflet-popup-content {
+/* Popups follow the theme, not Leaflet's white-and-Arial defaults. The extra class beats Leaflet's own stylesheet, which loads later. */
+.leaflet-container .leaflet-popup-content-wrapper,
+.leaflet-container .leaflet-popup-tip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+}
+.leaflet-container .leaflet-popup-content {
   margin: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.leaflet-container .leaflet-popup-content p {
+  margin: 0;
 }
 
 @media print {
