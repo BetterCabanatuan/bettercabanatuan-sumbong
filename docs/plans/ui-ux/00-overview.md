@@ -1,6 +1,6 @@
 # UI/UX pass: overview and shared rules
 
-Status: proposed, 2026-10-25. Nothing in these specs is built yet.
+Status: built on branch `ui-ux-pass`, 2026-10-25 (see the pull request for what was skipped and why). Before/after screenshots are in [`screenshots/`](screenshots).
 
 Five specs, one per priority. Read this file first; each spec assumes it.
 
