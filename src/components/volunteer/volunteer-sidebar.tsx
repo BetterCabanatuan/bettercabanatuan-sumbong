@@ -25,16 +25,19 @@ export function VolunteerSidebar({
   roleName,
   permissions,
   pending,
+  digestsWaiting,
 }: {
   displayName: string;
   roleName: string;
   permissions: Permission[];
   pending: number;
+  digestsWaiting: number;
 }) {
   const pathname = usePathname();
   const allowed = (item: NavItem) => !item.permission || permissions.includes(item.permission);
   const work = WORK.filter(allowed);
   const settings = SETTINGS.filter(allowed);
+  const counts = { pending, digests: digestsWaiting };
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
 
   return (
@@ -59,7 +62,7 @@ export function VolunteerSidebar({
                     <item.icon />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
-                  {item.badge && pending > 0 && <SidebarMenuBadge>{pending}</SidebarMenuBadge>}
+                  {item.badge && counts[item.badge] > 0 && <SidebarMenuBadge>{counts[item.badge]}</SidebarMenuBadge>}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
