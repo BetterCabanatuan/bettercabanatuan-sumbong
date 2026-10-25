@@ -165,7 +165,8 @@
       "reopened": "Reopened",
       "forwardedBody": "Included in the volunteers’ letter to the office through its official channel.",
       "publishedBody": "A volunteer checked the location and type, and blurred faces and plate numbers.",
-      "meToo": "{count, plural, one {# resident said “Ako rin”} other {# residents said “Ako rin”}}"
+      "meToo": "{count, plural, one {# resident said “Ako rin”} other {# residents said “Ako rin”}}",
+      "officePhase": "With the Responsible Office"
     },
     "reopen": {
       "title": "Not actually fixed?",
@@ -204,6 +205,12 @@
       "copy": "Copy link",
       "copied": "Link copied",
       "facebook": "Share on Facebook"
+    },
+    "notFound": {
+      "title": "We can’t show this report",
+      "body": "It may still be in review, or the code may be wrong. If it’s yours, open the private link from when you sent it, or look under My reports.",
+      "myReports": "My reports",
+      "home": "All reports"
     }
   },
   "login": {
@@ -372,7 +379,8 @@
       "forwarded": "Sent to {office} {when}",
       "published": "Goes to {office} in the next batch",
       "resolved": "Fixed {when}",
-      "reopened": "Reporter says it isn’t fixed yet"
+      "reopened": "Reporter says it isn’t fixed yet",
+      "updated": "Updated {when}"
     },
     "error": {
       "title": "Couldn’t load reports",
@@ -390,11 +398,33 @@
       "step1": "Report it with a photo and a pin on the map.",
       "step2": "A volunteer reviews it and blurs faces and plate numbers.",
       "step3": "Volunteers send it to the right office every week.",
-      "step4": "We’ll tell you when it’s fixed."
+      "step4": "We’ll tell you when it’s fixed.",
+      "toggle": "How it works"
     },
     "emergency": {
       "title": "Emergency?",
-      "body": "Live wires, flooding with people in danger, or fire? Don’t report here. Call CDRRMO at 0908-881-1010."
+      "body": "Live wires, flooding with people in danger, or fire? Don’t report here. Call CDRRMO at 0908-881-1010.",
+      "short": "Emergency? Call CDRRMO 0908-881-1010."
+    },
+    "stats": {
+      "label": "Recent activity",
+      "week": "{count} new this week",
+      "month": "{count} resolved this month"
+    },
+    "lookup": {
+      "label": "Look up a report",
+      "hint": "Paste the code or the link you were given.",
+      "placeholder": "CBN-ABC234",
+      "submit": "Look up",
+      "invalid": "That doesn’t look like a report code. A code looks like CBN-ABC234."
+    },
+    "map": {
+      "label": "Map of reports",
+      "empty": "No reports to show on the map",
+      "emptyHint": "Reports with a pin will appear here once they are published.",
+      "legend": "Map key",
+      "markerLabel": "{title}, {status}",
+      "reportLink": "Open report {code}"
     }
   }
 }

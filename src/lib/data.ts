@@ -1,4 +1,8 @@
 import "server-only";
+import { createClient as createPlainClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
+import type { BoardStats } from "@/lib/board-stats";
+import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type {
@@ -104,6 +108,39 @@ export async function getReportDetails(reportId: string, { asAdmin = false } = {
   if (answers.error) throw dbError("Loading report answers", answers.error);
   return { photos: photos.data as ReportPhoto[], answers: answers.data as ReportAnswer[] };
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * How many Reports were published in the last 7 days and resolved in the last 30, for the board's
+ * activity strip. Reads `reports_view` as an anonymous visitor, so it can only count what the board
+ * already shows. Every visitor gets the same numbers, so one cached answer serves everyone for five
+ * minutes. `unstable_cache` because the app doesn't use Cache Components; it can't read cookies, hence
+ * the plain client. Returns null if either count fails: the strip is a nicety, not worth an error page.
+ */
+export const getBoardStats = unstable_cache(
+  async (): Promise<BoardStats | null> => {
+    const supabase = createPlainClient(env.supabaseUrl, env.supabasePublishableKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const now = Date.now();
+    const [week, month] = await Promise.all([
+      supabase
+        .from("reports_view")
+        .select("id", { count: "exact", head: true })
+        .gte("published_at", new Date(now - 7 * DAY_MS).toISOString()),
+      supabase
+        .from("reports_view")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "resolved")
+        .gte("resolved_at", new Date(now - 30 * DAY_MS).toISOString()),
+    ]);
+    if (week.error || month.error) return null;
+    return { newThisWeek: week.count ?? 0, resolvedThisMonth: month.count ?? 0 };
+  },
+  ["board-stats"],
+  { revalidate: 300 },
+);
 
 export function byId<T extends { id: string | number }>(rows: T[]): Map<T["id"], T> {
   return new Map(rows.map((row) => [row.id, row]));
