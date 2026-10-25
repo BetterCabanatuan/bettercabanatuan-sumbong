@@ -18,7 +18,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { ActionFieldError, ActionForm, SubmitButton } from "@/components/volunteer/action-form";
 import type { Category, ResponsibleOffice } from "@/lib/types";
 
 type Action = (form: FormData) => Promise<VolunteerActionResult>;
@@ -70,7 +70,7 @@ export function ReviewDecision({
           </TabsList>
           {/* keepMounted: switching back keeps what was typed. */}
           <TabsContent value="approve" keepMounted className="pt-2">
-            <ActionForm action={approve} className="flex flex-col gap-4">
+            <ActionForm schema="approve" action={approve} className="flex flex-col gap-4">
               <p className="text-muted-foreground">The Report goes on the public board and into the office’s next Digest.</p>
               <div
                 className={
@@ -115,10 +115,12 @@ export function ReviewDecision({
                     ))}
                   </NativeSelect>
                   <FieldDescription>Suggested by the Category. A national highway goes to DPWH.</FieldDescription>
+                  <ActionFieldError name="office_id" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="approve-note">Internal note (optional)</FieldLabel>
                   <Textarea id="approve-note" name="note" maxLength={500} />
+                  <ActionFieldError name="note" />
                 </Field>
               </FieldGroup>
               <SubmitButton disabled={!photosDone} className="h-10 w-full">
@@ -131,7 +133,7 @@ export function ReviewDecision({
           </TabsContent>
 
           <TabsContent value="reject" keepMounted className="pt-2">
-            <ActionForm action={reject} className="flex flex-col gap-4">
+            <ActionForm schema="reject" action={reject} className="flex flex-col gap-4">
               <input type="hidden" name="from" value="review" />
               <input type="hidden" name="preset" value={preset ?? ""} />
               <p className="text-muted-foreground">The Reporter sees the reason if they left contact details.</p>
@@ -149,10 +151,12 @@ export function ReviewDecision({
                     </FieldLabel>
                   ))}
                 </RadioGroup>
+                <ActionFieldError name="preset" />
               </FieldSet>
               <Field>
                 <FieldLabel htmlFor="reason">Details (optional)</FieldLabel>
                 <Textarea id="reason" name="reason" maxLength={500} />
+                <ActionFieldError name="reason" />
               </Field>
               <SubmitButton variant="destructive" disabled={!preset} className="h-10 w-full">
                 Reject Report

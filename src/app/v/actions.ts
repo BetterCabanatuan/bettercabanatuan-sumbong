@@ -13,11 +13,10 @@ import { env } from "@/lib/env";
 import { notifyFollowers } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { PERMISSIONS } from "@/lib/permissions";
 import { PUBLIC_BUCKET } from "@/lib/storage";
-import type { DigestChannel } from "@/lib/types";
+import { checkVolunteerForm, type FieldErrors, volunteerForms } from "@/lib/volunteer-forms";
 
-export type VolunteerActionResult = { ok: true } | { ok: false; error: string };
+export type VolunteerActionResult = { ok: true } | { ok: false; error: string; fields?: FieldErrors };
 
 // Readable text for the errors the roles and user-management functions raise.
 const ERRORS: Record<string, string> = {
@@ -69,12 +68,14 @@ export async function setPhotoReview(photoId: string, publicPath: string | null,
 
 export async function approveReport(reportId: string, form: FormData): Promise<VolunteerActionResult> {
   await requirePermission("reports.review");
+  const checked = checkVolunteerForm("approve", form);
+  if (!checked.ok) return checked;
   const supabase = await createClient();
   const { error } = await supabase.rpc("review_approve", {
     p_report_id: uuid.parse(reportId),
-    p_category_id: uuid.parse(form.get("category_id")),
-    p_office_id: uuid.parse(form.get("office_id")),
-    p_note: String(form.get("note") ?? "") || null,
+    p_category_id: checked.data.category_id,
+    p_office_id: checked.data.office_id,
+    p_note: checked.data.note,
   });
   if (error?.message === "photos_not_cleared") {
     return { ok: false, error: "Clear, blur or hide every photo before approving." };
@@ -89,9 +90,9 @@ export async function approveReport(reportId: string, form: FormData): Promise<V
 /** Rejects a Report in Review, or takes down a published one (Archive). */
 export async function rejectReport(reportId: string, form: FormData): Promise<VolunteerActionResult> {
   await requirePermission(form.get("from") === "review" ? "reports.review" : "reports.archive");
-  const preset = String(form.get("preset") ?? "");
-  const detail = String(form.get("reason") ?? "").trim();
-  const reason = [preset, detail].filter(Boolean).join(": ");
+  const checked = checkVolunteerForm("reject", form);
+  if (!checked.ok) return checked;
+  const { fromReview, reason } = checked.data;
 
   const supabase = await createClient();
   // Read the public copies first: review_reject clears their paths.
@@ -106,7 +107,7 @@ export async function rejectReport(reportId: string, form: FormData): Promise<Vo
 
   after(() => notifyFollowers([reportId], "rejected"));
   revalidatePath("/v", "layout");
-  redirect(form.get("from") === "review" ? "/v/review?rejected=1" : `/v/reports/${reportId}`);
+  redirect(fromReview ? "/v/review?rejected=1" : `/v/reports/${reportId}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -118,11 +119,13 @@ export async function resolveReport(
   input: { note?: string; afterPhoto?: { originalPath: string; publicPath: string } },
 ): Promise<VolunteerActionResult> {
   await requirePermission("reports.edit");
+  const parsed = volunteerForms.resolve.safeParse({ note: input.note });
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   const supabase = await createClient();
   // One call, so the "after" photo is only attached if the Report actually resolves.
   const { error } = await supabase.rpc("resolve_report", {
     p_report_id: uuid.parse(reportId),
-    p_note: input.note || null,
+    p_note: parsed.data.note,
     p_after_original_path: input.afterPhoto?.originalPath ?? null,
     p_after_public_path: input.afterPhoto?.publicPath ?? null,
   });
@@ -136,11 +139,13 @@ export async function resolveReport(
 
 export async function misrouteReport(reportId: string, form: FormData): Promise<VolunteerActionResult> {
   await requirePermission("reports.edit");
+  const checked = checkVolunteerForm("misroute", form);
+  if (!checked.ok) return checked;
   const supabase = await createClient();
   const { error } = await supabase.rpc("mark_misroute", {
     p_report_id: uuid.parse(reportId),
-    p_new_office_id: uuid.parse(form.get("office_id")),
-    p_note: String(form.get("note") ?? "") || null,
+    p_new_office_id: checked.data.office_id,
+    p_note: checked.data.note,
   });
   if (error) return failure(error);
 
@@ -151,10 +156,12 @@ export async function misrouteReport(reportId: string, form: FormData): Promise<
 
 export async function reopenReport(reportId: string, form: FormData): Promise<VolunteerActionResult> {
   await requirePermission("reports.edit");
+  const checked = checkVolunteerForm("reopen", form);
+  if (!checked.ok) return checked;
   const supabase = await createClient();
   const { error } = await supabase.rpc("reopen_report", {
     p_report_id: uuid.parse(reportId),
-    p_note: String(form.get("note") ?? "") || null,
+    p_note: checked.data.note,
   });
   if (error) return failure(error);
 
@@ -169,11 +176,12 @@ export async function reopenReport(reportId: string, form: FormData): Promise<Vo
 
 export async function createDigest(form: FormData): Promise<VolunteerActionResult> {
   await requirePermission("digests.add");
-  const barangay = form.get("barangay_id");
+  const checked = checkVolunteerForm("createDigest", form);
+  if (!checked.ok) return checked;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_digest", {
-    p_office_id: uuid.parse(form.get("office_id")),
-    p_barangay_id: barangay ? Number(barangay) : null,
+    p_office_id: checked.data.office_id,
+    p_barangay_id: checked.data.barangay_id,
   });
   if (error) return failure(error);
   redirect(`/v/digests/${data}`);
@@ -196,21 +204,17 @@ export async function discardDigest(digestId: string): Promise<VolunteerActionRe
   redirect("/v/digests");
 }
 
-const CHANNELS: DigestChannel[] = ["letter", "text_line", "email", "in_person", "other"];
-
 export async function sendDigest(digestId: string, form: FormData): Promise<VolunteerActionResult> {
   await requirePermission("digests.send");
-  const channel = z.enum(CHANNELS).parse(form.get("channel"));
-  const sentAt = String(form.get("sent_at") ?? "");
-  // <input type="datetime-local"> has no zone; Volunteers work in Manila time.
-  const sentAtIso = sentAt ? new Date(`${sentAt}:00+08:00`).toISOString() : new Date().toISOString();
+  const checked = checkVolunteerForm("sendDigest", form);
+  if (!checked.ok) return checked;
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("send_digest", {
     p_digest_id: uuid.parse(digestId),
-    p_channel: channel,
-    p_channel_detail: String(form.get("channel_detail") ?? "") || null,
-    p_sent_at: sentAtIso,
+    p_channel: checked.data.channel,
+    p_channel_detail: checked.data.channel_detail,
+    p_sent_at: checked.data.sentAt.toISOString(),
   });
   if (error) return failure(error);
 
@@ -235,27 +239,12 @@ export async function setDigestProof(digestId: string, path: string): Promise<Vo
 // Coordinator settings
 // ---------------------------------------------------------------------------
 
-function bilingual<K extends string>(form: FormData, key: K) {
-  return {
-    [`${key}_en`]: String(form.get(`${key}_en`) ?? "").trim() || null,
-    [`${key}_fil`]: String(form.get(`${key}_fil`) ?? "").trim() || null,
-  } as Record<`${K}_en` | `${K}_fil`, string | null>;
-}
-
 /** Creates (Add) or changes (Edit) a Category. Archiving is `setCategoryActive`. */
 export async function saveCategory(form: FormData): Promise<VolunteerActionResult> {
-  const id = String(form.get("id") ?? "");
-  await requirePermission(id ? "categories.edit" : "categories.add");
-  const row = {
-    slug: String(form.get("slug") ?? "").trim().toLowerCase(),
-    ...bilingual(form, "name"),
-    ...bilingual(form, "description"),
-    ...bilingual(form, "urgent_notice"),
-    icon: String(form.get("icon") ?? "circle-alert"),
-    default_office_id: String(form.get("default_office_id") ?? "") || null,
-    sort_order: Number(form.get("sort_order") ?? 0) || 0,
-  };
-  if (!row.name_en || !row.name_fil) return { ok: false, error: "Both names are required." };
+  await requirePermission(form.get("id") ? "categories.edit" : "categories.add");
+  const checked = checkVolunteerForm("category", form);
+  if (!checked.ok) return checked;
+  const { id, ...row } = checked.data;
 
   const supabase = await createClient();
   const { data, error } = id
@@ -278,32 +267,9 @@ export async function setCategoryActive(id: string, active: boolean): Promise<Vo
 
 export async function saveQuestion(form: FormData): Promise<VolunteerActionResult> {
   await requirePermission("categories.edit");
-  const id = String(form.get("id") ?? "");
-  const kind = z.enum(["text", "yes_no", "choice"]).parse(form.get("kind"));
-  const choices =
-    kind === "choice"
-      ? String(form.get("choices") ?? "")
-          .split("\n")
-          .map((line) => line.trim())
-          .filter(Boolean)
-          .map((line) => {
-            const [value, label_en, label_fil] = line.split("|").map((part) => part.trim());
-            return { value, label_en: label_en || value, label_fil: label_fil || label_en || value };
-          })
-      : [];
-  if (kind === "choice" && choices.length < 2) return { ok: false, error: "A choice question needs at least 2 options." };
-
-  const row = {
-    category_id: uuid.parse(form.get("category_id")),
-    prompt_en: String(form.get("prompt_en") ?? "").trim(),
-    prompt_fil: String(form.get("prompt_fil") ?? "").trim(),
-    kind,
-    choices,
-    required: form.get("required") === "on",
-    sort_order: Number(form.get("sort_order") ?? 0) || 0,
-    active: form.get("active") === "on",
-  };
-  if (!row.prompt_en || !row.prompt_fil) return { ok: false, error: "Both prompts are required." };
+  const checked = checkVolunteerForm("question", form);
+  if (!checked.ok) return checked;
+  const { id, ...row } = checked.data;
 
   const supabase = await createClient();
   const { error } = id
@@ -316,23 +282,10 @@ export async function saveQuestion(form: FormData): Promise<VolunteerActionResul
 
 /** Creates (Add) or changes (Edit) a Responsible Office. Archiving is `setOfficeActive`. */
 export async function saveOffice(form: FormData): Promise<VolunteerActionResult> {
-  const id = String(form.get("id") ?? "");
-  await requirePermission(id ? "offices.edit" : "offices.add");
-  const text = (key: string) => String(form.get(key) ?? "").trim() || null;
-  const row = {
-    short_name: text("short_name"),
-    ...bilingual(form, "name"),
-    scope: z.enum(["citywide", "per_barangay"]).parse(form.get("scope")),
-    channel: text("channel"),
-    letter_addressee: text("letter_addressee"),
-    letter_attention: text("letter_attention"),
-    email: text("email"),
-    phone: text("phone"),
-    address: text("address"),
-  };
-  if (!row.short_name || !row.name_en || !row.name_fil || !row.channel) {
-    return { ok: false, error: "Short name, both names and the channel are required." };
-  }
+  await requirePermission(form.get("id") ? "offices.edit" : "offices.add");
+  const checked = checkVolunteerForm("office", form);
+  if (!checked.ok) return checked;
+  const { id, ...row } = checked.data;
 
   const supabase = await createClient();
   const { data, error } = id
@@ -359,15 +312,15 @@ export async function setOfficeActive(id: string, active: boolean): Promise<Volu
 
 export async function inviteVolunteer(form: FormData): Promise<VolunteerActionResult> {
   await requirePermission("users.add");
-  const email = z.email().safeParse(String(form.get("email") ?? "").trim().toLowerCase());
-  if (!email.success) return { ok: false, error: ERRORS.invalid_email };
+  const checked = checkVolunteerForm("invite", form);
+  if (!checked.ok) return checked;
+  const { email, role_id: roleId, display_name } = checked.data;
 
-  const roleId = uuid.parse(form.get("role_id"));
   const supabase = await createClient();
   const { data: applied, error } = await supabase.rpc("invite_volunteer", {
-    p_email: email.data,
+    p_email: email,
     p_role_id: roleId,
-    p_display_name: String(form.get("display_name") ?? "").trim() || null,
+    p_display_name: display_name,
   });
   if (error) return failure(error);
   revalidatePath("/v/settings/users");
@@ -375,7 +328,7 @@ export async function inviteVolunteer(form: FormData): Promise<VolunteerActionRe
 
   // No confirmed account yet: the Volunteer Invitation waits until they confirm the
   // address, which this email's link does.
-  const sent = await sendInvitationEmail(email.data, roleId);
+  const sent = await sendInvitationEmail(email, roleId);
   if (!sent) {
     return {
       ok: false,
@@ -433,11 +386,12 @@ export async function cancelInvitation(email: string): Promise<VolunteerActionRe
  */
 export async function setUserAccess(form: FormData): Promise<VolunteerActionResult> {
   await requirePermission("users.add", "users.edit", "users.archive");
-  const roleId = String(form.get("role_id") ?? "");
+  const checked = checkVolunteerForm("userAccess", form);
+  if (!checked.ok) return checked;
   const supabase = await createClient();
   const { error } = await supabase.rpc("set_user_access", {
-    p_user_id: uuid.parse(form.get("user_id")),
-    p_role_id: roleId === "none" ? null : uuid.parse(roleId),
+    p_user_id: checked.data.user_id,
+    p_role_id: checked.data.role_id,
   });
   if (error) return failure(error);
   revalidatePath("/v/settings/users");
@@ -446,14 +400,15 @@ export async function setUserAccess(form: FormData): Promise<VolunteerActionResu
 
 /** Creates (Add) or changes (Edit) a role and its permissions. */
 export async function saveRole(form: FormData): Promise<VolunteerActionResult> {
-  const id = String(form.get("id") ?? "");
-  await requirePermission(id ? "roles.edit" : "roles.add");
+  await requirePermission(form.get("id") ? "roles.edit" : "roles.add");
+  const checked = checkVolunteerForm("role", form);
+  if (!checked.ok) return checked;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("save_role", {
-    p_role_id: id ? uuid.parse(id) : null,
-    p_name: String(form.get("name") ?? "").trim(),
-    p_description: String(form.get("description") ?? "").trim() || null,
-    p_permissions: z.array(z.enum(PERMISSIONS)).parse(form.getAll("permissions")),
+    p_role_id: checked.data.id,
+    p_name: checked.data.name,
+    p_description: checked.data.description,
+    p_permissions: checked.data.permissions,
   });
   if (error) return failure(error);
   revalidatePath("/v", "layout");

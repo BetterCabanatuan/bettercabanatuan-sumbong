@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 import { Providers } from "@/components/providers";
+import { RouteProgress } from "@/components/route-progress";
 import { cn } from "@/lib/utils";
 import { plexMono, plexSans } from "./fonts";
 import "./globals.css";
@@ -28,7 +30,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang={locale === "fil" ? "fil" : "en"} className={cn("h-full antialiased", plexSans.variable, plexMono.variable)}>
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
-          <Providers>{children}</Providers>
+          <Providers>
+            {/* Reads the URL, which needs a boundary of its own outside the render path. */}
+            <Suspense fallback={null}>
+              <RouteProgress />
+            </Suspense>
+            {children}
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

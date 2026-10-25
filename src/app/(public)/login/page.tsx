@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { safeNextPath } from "@/lib/redirect";
 import { LoginForm } from "./login-form";
+import { NewLinkButton } from "./new-link-button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("login");
@@ -24,7 +25,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       )}
       {params.error && (
         <Alert variant="destructive" className="bg-card">
-          <AlertDescription>{t("linkError")}</AlertDescription>
+          <AlertDescription>
+            {t("linkError")}
+            <br />
+            <NewLinkButton />
+          </AlertDescription>
         </Alert>
       )}
       <Card>

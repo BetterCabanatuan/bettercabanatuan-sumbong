@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toUploadableJpeg } from "@/lib/image";
 import { ORIGINALS_BUCKET, PUBLIC_BUCKET } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
+import { volunteerForms } from "@/lib/volunteer-forms";
 
 /** Marks a Report Resolved, ideally with an "after" photo that becomes public. */
 export function ResolveForm({ reportId }: { reportId: string }) {
@@ -20,6 +21,9 @@ export function ResolveForm({ reportId }: { reportId: string }) {
   const [pending, startTransition] = useTransition();
 
   function submit() {
+    // Same check as resolveReport, before an "after" photo is uploaded for nothing.
+    const checked = volunteerForms.resolve.safeParse({ note });
+    if (!checked.success) return setError(checked.error.issues[0].message);
     startTransition(async () => {
       setError(null);
       try {

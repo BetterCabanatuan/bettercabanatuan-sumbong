@@ -178,6 +178,7 @@
       opacity: 0;
     }
   }
+  --animate-nudge: nudge 240ms cubic-bezier(0.23, 1, 0.32, 1);
 
   @keyframes sun-pop {
     from {
@@ -190,6 +191,19 @@
     from {
       opacity: 0;
       translate: 0 8px;
+    }
+  }
+
+  /* A short sideways shake for a message that says "not yet". */
+  @keyframes nudge {
+    25% {
+      translate: -4px 0;
+    }
+    50% {
+      translate: 4px 0;
+    }
+    75% {
+      translate: -2px 0;
     }
   }
 

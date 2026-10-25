@@ -19,7 +19,16 @@ function keyOf(photo: Blob) {
   return key;
 }
 
-export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (photos: Blob[]) => void }) {
+export function PhotoPicker({
+  photos,
+  onChange,
+  invalid,
+}: {
+  photos: Blob[];
+  onChange: (photos: Blob[]) => void;
+  /** The Reporter tried to continue without a photo. */
+  invalid?: boolean;
+}) {
   const t = useTranslations("reportForm.photos");
   const camera = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
@@ -55,7 +64,7 @@ export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (p
   }
 
   return (
-    <Field data-invalid={error ? true : undefined}>
+    <Field data-invalid={error || invalid ? true : undefined}>
       <FieldLabel htmlFor="photos">{t("label")}</FieldLabel>
       <ul className="grid grid-cols-3 gap-2">
         {photos.map((photo, i) => (
@@ -85,10 +94,12 @@ export function PhotoPicker({ photos, onChange }: { photos: Blob[]; onChange: (p
         {photos.length < MAX_PHOTOS && (
           <li>
             <button
+              id="photo-camera"
               type="button"
               onClick={() => camera.current?.click()}
               disabled={busy}
-              className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input bg-card text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+              data-invalid={invalid || undefined}
+              className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input bg-card text-sm font-medium text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-invalid:border-destructive disabled:opacity-60 motion-safe:active:scale-[0.97] [@media(hover:hover)]:hover:border-primary [@media(hover:hover)]:hover:text-primary"
             >
               {busy ? <Spinner /> : <Camera className="size-6" aria-hidden="true" />}
               {busy ? t("processing") : t("camera")}
