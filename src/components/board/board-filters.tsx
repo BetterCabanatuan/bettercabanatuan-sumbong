@@ -2,7 +2,7 @@
 
 import { SlidersHorizontal } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -10,7 +10,14 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { localized } from "@/i18n/config";
-import { BOARD_VIEWS, type BoardFilters, type BoardView, boardFiltersToSearch } from "@/lib/board";
+import {
+  BOARD_VIEWS,
+  type BoardFilters,
+  type BoardMode,
+  type BoardView,
+  boardFiltersToSearch,
+  parseBoardMode,
+} from "@/lib/board";
 import { startRouteProgress } from "@/lib/route-progress";
 import type { Locale } from "@/lib/types";
 import { CategoryIcon } from "@/components/category-icon";
@@ -19,27 +26,38 @@ import type { BoardLookups } from "./types";
 // Shared by every board control (the filter rail and sheet, the sort and view toggles): the URL,
 // and so `filters`, only catches up once a navigation commits. Building on the latest request
 // stops a quick second change from dropping the first.
-let requested: BoardFilters | null = null;
+let requested: { filters: BoardFilters; mode: BoardMode } | null = null;
 
 export function useBoardNavigation(filters: BoardFilters) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
+  const mode = parseBoardMode({ mode: searchParams.get("mode") ?? undefined });
   useEffect(() => {
     requested = null;
-  }, [filters]);
-  const update = (patch: Partial<BoardFilters>) => {
+  }, [filters, mode]);
+  /** `mode` rides along with the filters in the URL, but is not one of them (see `BoardMode`). */
+  const update = (patch: Partial<BoardFilters> & { mode?: BoardMode }) => {
+    const { mode: nextMode, ...filterPatch } = patch;
     // Build on the latest request so a quick second change does not drop the first.
-    const current = requested ?? filters;
-    const next = { ...current, ...patch };
-    const search = boardFiltersToSearch(next);
+    const base = requested ?? { filters, mode };
+    const next = { filters: { ...base.filters, ...filterPatch }, mode: nextMode ?? base.mode };
+    const url = `${pathname}${boardFiltersToSearch(next.filters, next.mode)}`;
     // Asking for what is already showing, or already on its way, leaves nothing to wait for.
-    if (search === boardFiltersToSearch(current)) return;
+    if (url === `${pathname}${boardFiltersToSearch(base.filters, base.mode)}`) return;
     requested = next;
+    if (Object.keys(filterPatch).length === 0) {
+      // Only the view changed: the server has nothing new to render, so update the URL in place
+      // (Next syncs `useSearchParams`) and the switch is instant.
+      window.history.replaceState(null, "", url);
+      requested = null;
+      return;
+    }
     startRouteProgress();
-    startTransition(() => router.replace(`${pathname}${search}`, { scroll: false }));
+    startTransition(() => router.replace(url, { scroll: false }));
   };
-  return { update, pending };
+  return { update, pending, mode };
 }
 
 function FilterControls({ filters, lookups }: { filters: BoardFilters; lookups: BoardLookups }) {
@@ -111,7 +129,7 @@ function FilterControls({ filters, lookups }: { filters: BoardFilters; lookups: 
 export function BoardFilterRail({ filters, lookups }: { filters: BoardFilters; lookups: BoardLookups }) {
   const t = useTranslations("board");
   return (
-    <aside className="hidden w-56 shrink-0 lg:block" aria-label={t("filters.title")}>
+    <aside className="hidden w-56 shrink-0 lg:block lg:group-data-[mode=map]/board:hidden" aria-label={t("filters.title")}>
       <div className="sticky top-24">
         <FilterControls filters={filters} lookups={lookups} />
       </div>
@@ -120,12 +138,21 @@ export function BoardFilterRail({ filters, lookups }: { filters: BoardFilters; l
 }
 
 /** Phone and tablet: the same controls in a sheet. */
-export function BoardFilterSheet({ filters, lookups }: { filters: BoardFilters; lookups: BoardLookups }) {
+/** `always` keeps the button on wide screens too, for when the left rail is hidden (the map view). */
+export function BoardFilterSheet({
+  filters,
+  lookups,
+  always = false,
+}: {
+  filters: BoardFilters;
+  lookups: BoardLookups;
+  always?: boolean;
+}) {
   const t = useTranslations("board");
   const active = (filters.view !== "open" ? 1 : 0) + (filters.category ? 1 : 0) + (filters.barangay ? 1 : 0);
   return (
     <Sheet>
-      <SheetTrigger render={<Button variant="outline" className="lg:hidden" />}>
+      <SheetTrigger render={<Button variant="outline" className={always ? undefined : "lg:hidden"} />}>
         <SlidersHorizontal data-icon="inline-start" />
         {active ? t("filters.buttonActive", { count: active }) : t("filters.button")}
       </SheetTrigger>

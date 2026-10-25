@@ -2,6 +2,7 @@ import { Inbox } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
+import { CodeLookup } from "@/components/board/code-lookup";
 import { DeviceReports } from "@/components/me/device-reports";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,8 @@ export default async function MyReportsPage() {
           </form>
         )}
       </div>
+
+      <CodeLookup className="max-w-md" />
 
       <section className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">

@@ -14,12 +14,12 @@ import { getBarangays, getCategories, getOffices, getReportByCode, getReportDeta
 import { env } from "@/lib/env";
 import { reportTitle } from "@/lib/report-title";
 import { hasReporterAccess, type ReporterCredentials } from "@/lib/reporter-access";
-import { STATUS_MARKER } from "@/lib/status";
 import { ORIGINALS_BUCKET, publicPhotoUrl } from "@/lib/storage";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { type Locale, OPEN_STATUSES, PUBLIC_STATUSES, type Report, type ReportStatus } from "@/lib/types";
+import { type Locale, OPEN_STATUSES, PUBLIC_STATUSES, type Report } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { FollowForm, ReopenForm, ShareCard, ThreadVote } from "./reporter-actions";
+import { Timeline, type TimelineItem } from "./timeline";
 
 const REOPEN_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -35,17 +35,6 @@ function daysSince(iso: string) {
 function param(value: string | string[] | undefined) {
   return typeof value === "string" ? value : null;
 }
-
-const DOT: Record<ReportStatus | "submitted" | "meToo", string> = {
-  submitted: "bg-muted-foreground",
-  meToo: "bg-sun",
-  pending_review: "bg-muted-foreground",
-  published: "bg-status-published-foreground",
-  forwarded: "bg-primary",
-  resolved: "bg-status-resolved-foreground",
-  reopened: "bg-status-reopened-foreground",
-  rejected: "bg-destructive",
-};
 
 export async function generateMetadata({ params }: PageProps<"/r/[code]">): Promise<Metadata> {
   const { code } = await params;
@@ -120,33 +109,46 @@ export default async function ReportPage({ params, searchParams }: PageProps<"/r
   const canReopen = isReporter && report.status === "resolved" && withinReopenWindow(report.resolved_at);
 
   const date = (value: string) => format.dateTime(new Date(value), { month: "short", day: "numeric", year: "numeric" });
+  // Newest first. `office` marks what happened once Volunteers handed it to the Responsible Office.
   const updates = [
     report.status === "reopened" &&
-      report.reopened_at && { key: "reopened", dot: DOT.reopened, title: t("timeline.reopened"), at: report.reopened_at },
+      report.reopened_at && {
+        key: "reopened",
+        kind: "reopened",
+        office: true,
+        title: t("timeline.reopened"),
+        date: date(report.reopened_at),
+      },
     report.status === "resolved" &&
-      report.resolved_at && { key: "resolved", dot: DOT.resolved, title: t("timeline.resolved"), at: report.resolved_at },
+      report.resolved_at && {
+        key: "resolved",
+        kind: "resolved",
+        office: true,
+        title: t("timeline.resolved"),
+        date: date(report.resolved_at),
+      },
     report.first_forwarded_at && {
       key: "forwarded",
-      dot: DOT.forwarded,
+      kind: "forwarded",
+      office: true,
       title: t("timeline.forwarded", { office: officeName }),
       body: t("timeline.forwardedBody"),
-      at: report.first_forwarded_at,
+      date: date(report.first_forwarded_at),
     },
     report.me_too_count > 0 && {
       key: "meToo",
-      dot: DOT.meToo,
+      kind: "meToo",
       title: t("timeline.meToo", { count: report.me_too_count }),
-      at: null,
     },
     report.published_at && {
       key: "published",
-      dot: DOT.published,
+      kind: "published",
       title: t("timeline.published"),
       body: t("timeline.publishedBody"),
-      at: report.published_at,
+      date: date(report.published_at),
     },
-    { key: "submitted", dot: DOT.submitted, title: t("timeline.submitted"), at: report.created_at },
-  ].filter(Boolean) as { key: string; dot: string; title: string; body?: string; at: string | null }[];
+    { key: "submitted", kind: "submitted", title: t("timeline.submitted"), date: date(report.created_at) },
+  ].filter(Boolean) as TimelineItem[];
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6">
@@ -230,21 +232,7 @@ export default async function ReportPage({ params, searchParams }: PageProps<"/r
 
           <section className="flex flex-col gap-4">
             <h2 className="text-lg font-semibold">{t("timeline.title")}</h2>
-            <ol className="ml-2 flex flex-col gap-5 border-l-2 pl-6">
-              {updates.map((item) => (
-                <li key={item.key} className="relative">
-                  <span
-                    aria-hidden="true"
-                    className={cn("absolute top-1 -left-[33px] size-4 rounded-full ring-4 ring-background", item.dot)}
-                  />
-                  <p className="text-sm">
-                    <span className="font-semibold">{item.title}</span>
-                    {item.at && <span className="text-muted-foreground"> · {date(item.at)}</span>}
-                  </p>
-                  {item.body && <p className="mt-1 text-sm text-muted-foreground">{item.body}</p>}
-                </li>
-              ))}
-            </ol>
+            <Timeline items={updates} officePhaseLabel={t("timeline.officePhase")} />
           </section>
 
           {isReporter && canReopen && <ReopenForm reportId={report.id} credentials={credentials} />}
@@ -271,15 +259,16 @@ export default async function ReportPage({ params, searchParams }: PageProps<"/r
             <div className="h-48">
               <ReportsMap
                 className="size-full"
+                legend={false}
                 reports={[
                   {
                     id: report.id,
                     code: report.public_code,
                     lat: report.lat,
                     lng: report.lng,
-                    color: STATUS_MARKER[report.status],
+                    status: report.status,
                     title,
-                    statusLabel: report.public_code,
+                    categoryIcon: category?.icon ?? "circle-alert",
                   },
                 ]}
               />

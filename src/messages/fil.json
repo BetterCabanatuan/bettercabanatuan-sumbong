@@ -201,7 +201,8 @@
       "reopened": "Binuksan muli",
       "forwardedBody": "Kasama sa liham ng mga volunteer sa opisina, sa opisyal nitong channel.",
       "publishedBody": "Sinuri ng volunteer ang lokasyon at uri, at pinalabo ang mukha at plate number.",
-      "meToo": "{count} residente ang nagsabing “Ako rin”"
+      "meToo": "{count} residente ang nagsabing “Ako rin”",
+      "officePhase": "Nasa Responsableng opisina na"
     },
     "reopen": {
       "title": "Hindi pa talaga naayos?",
@@ -240,6 +241,12 @@
       "copy": "Kopyahin ang link",
       "copied": "Nakopya ang link",
       "facebook": "I-share sa Facebook"
+    },
+    "notFound": {
+      "title": "Hindi namin maipakita ang sumbong na ito",
+      "body": "Baka nasa pagsusuri pa ito, o mali ang code. Kung sa iyo ito, buksan ang pribadong link na natanggap mo nang mag-sumbong ka, o tingnan sa Mga sumbong ko.",
+      "myReports": "Mga sumbong ko",
+      "home": "Lahat ng sumbong"
     }
   },
   "login": {
@@ -417,7 +424,8 @@
       "forwarded": "Naipadala sa {office} {when}",
       "published": "Ipapadala sa {office} sa susunod na batch",
       "resolved": "Naayos {when}",
-      "reopened": "Sabi ng nag-sumbong, hindi pa talaga naayos"
+      "reopened": "Sabi ng nag-sumbong, hindi pa talaga naayos",
+      "updated": "Na-update {when}"
     },
     "error": {
       "title": "Hindi ma-load ang mga sumbong",
@@ -435,11 +443,33 @@
       "step1": "Mag-sumbong gamit ang litrato at pin sa mapa.",
       "step2": "Sinusuri ng volunteer at pinalalabo ang mukha at plate number.",
       "step3": "Ipinapadala ng mga volunteer sa tamang opisina tuwing linggo.",
-      "step4": "Sasabihan ka kapag naayos na."
+      "step4": "Sasabihan ka kapag naayos na.",
+      "toggle": "Paano ito gumagana"
     },
     "emergency": {
       "title": "Emergency?",
-      "body": "May kuryenteng kable, baha na may taong nanganganib, o sunog? Huwag nang mag-sumbong dito. Tumawag sa CDRRMO: 0908-881-1010."
+      "body": "May kuryenteng kable, baha na may taong nanganganib, o sunog? Huwag nang mag-sumbong dito. Tumawag sa CDRRMO: 0908-881-1010.",
+      "short": "Emergency? Tumawag sa CDRRMO: 0908-881-1010."
+    },
+    "stats": {
+      "label": "Kamakailang aktibidad",
+      "week": "{count} bagong sumbong ngayong linggo",
+      "month": "{count} naayos ngayong buwan"
+    },
+    "lookup": {
+      "label": "Hanapin ang isang sumbong",
+      "hint": "I-paste ang code o link na ibinigay sa iyo.",
+      "placeholder": "CBN-ABC234",
+      "submit": "Hanapin",
+      "invalid": "Mukhang hindi ito code ng sumbong. Ganito ang itsura ng code: CBN-ABC234."
+    },
+    "map": {
+      "label": "Mapa ng mga sumbong",
+      "empty": "Walang sumbong na maipapakita sa mapa",
+      "emptyHint": "Lalabas dito ang mga sumbong na may pin kapag na-publish na ang mga ito.",
+      "legend": "Gabay sa mapa",
+      "markerLabel": "{title}, {status}",
+      "reportLink": "Buksan ang sumbong {code}"
     }
   }
 }
