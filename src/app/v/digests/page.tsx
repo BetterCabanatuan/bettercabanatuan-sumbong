@@ -75,6 +75,12 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
                   <TableCell className="pl-4">
                     <span className="font-medium">{officesById.get(row.office)?.name_en}</span>
                     {row.barangay && <span> · Brgy. {barangaysById.get(row.barangay)?.name}</span>}
+                    <span
+                      className="line-clamp-1 max-w-[48ch] text-xs text-muted-foreground"
+                      title={officesById.get(row.office)?.channel}
+                    >
+                      Channel: {officesById.get(row.office)?.channel}
+                    </span>
                   </TableCell>
                   <TableCell className="tabular-nums text-muted-foreground">{row.count} waiting</TableCell>
                   <TableCell className="pr-4 text-right">
@@ -113,12 +119,14 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
           badges={(d) => (
             <Badge
               className={
-                d.sent_at
-                  ? "bg-status-resolved text-status-resolved-foreground"
-                  : "bg-status-published text-status-published-foreground"
+                !d.sent_at
+                  ? "bg-status-published text-status-published-foreground"
+                  : d.proof_photo_path
+                    ? "bg-status-resolved text-status-resolved-foreground"
+                    : "bg-muted text-muted-foreground"
               }
             >
-              {d.sent_at ? "Sent" : "Draft"}
+              {d.sent_at ? (d.proof_photo_path ? "Sent · proof" : "Sent · no proof") : "Draft"}
             </Badge>
           )}
           fields={[

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { ActionForm, SubmitButton } from "@/components/volunteer/action-form";
+import { DigestProgress } from "@/components/volunteer/digest-progress";
 import { ProofUpload } from "@/components/volunteer/proof-upload";
 import { RemoveFromDigest } from "@/components/volunteer/remove-from-digest";
 import { can, requireVolunteer } from "@/lib/auth";
@@ -57,6 +58,7 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
           </Button>
         )}
       </div>
+      <DigestProgress sent={sent} hasProof={Boolean(digest.proof_photo_path)} />
       <p className="text-muted-foreground">
         Channel: <span className="text-foreground">{office.channel}</span>
         {office.email && ` · ${office.email}`}
