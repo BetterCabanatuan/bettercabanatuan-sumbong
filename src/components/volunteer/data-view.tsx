@@ -1,6 +1,8 @@
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { isValidElement, type ReactNode } from "react";
 import { Card } from "@/components/ui/card";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { DataViewMode } from "@/lib/data-view";
 import { cn } from "@/lib/utils";
@@ -13,6 +15,20 @@ export interface DataField<T> {
   numeric?: boolean;
   /** Left out of the list layout, which shows only the most useful facts on one line. */
   hideInList?: boolean;
+  /** Free text that can run long: cut to two lines in the table (the full text is in the tooltip and the grid). */
+  clamp?: boolean;
+}
+
+/** What an empty list says: what it is, why it is empty, and what to do next. */
+export interface EmptyState {
+  title: string;
+  description?: string;
+  icon?: LucideIcon;
+  action?: ReactNode;
+}
+
+function isEmptyState(empty: ReactNode | EmptyState): empty is EmptyState {
+  return typeof empty === "object" && empty !== null && !isValidElement(empty) && "title" in empty;
 }
 
 interface DataViewProps<T> {
@@ -30,7 +46,7 @@ interface DataViewProps<T> {
   /** Buttons for one item, shown in every layout. */
   actions?: (item: T) => ReactNode;
   actionsLabel?: string;
-  empty: ReactNode;
+  empty: ReactNode | EmptyState;
 }
 
 /** One console list, rendered as a table, a list or a grid of cards from the same fields. */
@@ -39,7 +55,22 @@ export function DataView<T>(props: DataViewProps<T>) {
   if (items.length === 0) {
     return (
       <Card className="py-0">
-        <p className="p-6 text-center text-muted-foreground">{empty}</p>
+        {isEmptyState(empty) ? (
+          <Empty className="flex-none border-0">
+            <EmptyHeader>
+              {empty.icon && (
+                <EmptyMedia variant="icon">
+                  <empty.icon />
+                </EmptyMedia>
+              )}
+              <EmptyTitle>{empty.title}</EmptyTitle>
+              {empty.description && <EmptyDescription>{empty.description}</EmptyDescription>}
+            </EmptyHeader>
+            {empty.action && <EmptyContent>{empty.action}</EmptyContent>}
+          </Empty>
+        ) : (
+          <p className="p-6 text-center text-muted-foreground">{empty}</p>
+        )}
       </Card>
     );
   }
@@ -56,6 +87,14 @@ function Title<T>({ item, title, href }: Pick<DataViewProps<T>, "title" | "href"
     </Link>
   ) : (
     <span className="font-medium">{title(item)}</span>
+  );
+}
+
+function Clamped({ children }: { children: ReactNode }) {
+  return (
+    <span className="line-clamp-2 max-w-[36ch] break-words" title={typeof children === "string" ? children : undefined}>
+      {children}
+    </span>
   );
 }
 
@@ -88,7 +127,7 @@ function TableLayout<T>({ items, itemKey, titleLabel, title, subtitle, href, bad
               </TableCell>
               {fields.map((field) => (
                 <TableCell key={field.key} className={cn(field.numeric && "text-right tabular-nums")}>
-                  {field.value(item)}
+                  {field.clamp ? <Clamped>{field.value(item)}</Clamped> : field.value(item)}
                 </TableCell>
               ))}
               {actions && (

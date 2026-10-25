@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, Copy, History, LocateFixed, Share2, TriangleAlert, Users } from "lucide-react";
+import { ArrowLeft, Check, Copy, History, LocateFixed, Phone, Share2, TriangleAlert, Users } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
@@ -104,13 +104,13 @@ export function ReportForm({
   const [restored, setRestored] = useState(false);
 
   // Start each step at its top; on phones the Next button sits far down the previous step.
+  // Compare with the step we last saw instead of skipping "the first run": React strict mode runs
+  // effects twice in development, and a skipped-once flag then scrolled past the page title on load.
   const top = useRef<HTMLDivElement>(null);
-  const firstRender = useRef(true);
+  const shownStep = useRef(step);
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (shownStep.current === step) return;
+    shownStep.current = step;
     top.current?.scrollIntoView({ block: "start" });
   }, [step]);
 
@@ -278,6 +278,20 @@ export function ReportForm({
         </p>
         <Progress value={((stepIndex + 1) / steps.length) * 100} aria-label={t("progress", { step: stepIndex + 1, total: steps.length })} />
       </div>
+
+      {step === "location" && (
+        <Alert variant="destructive" className="bg-card">
+          <TriangleAlert />
+          <AlertTitle>{t("emergency.title")}</AlertTitle>
+          <AlertDescription className="flex flex-col items-start gap-2">
+            <p>{t("emergency.body")}</p>
+            <Button variant="outline" size="lg" className="h-11" nativeButton={false} render={<a href="tel:09088811010" />}>
+              <Phone data-icon="inline-start" />
+              {t("emergency.call")}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {restored && (
         <Alert className="bg-card">

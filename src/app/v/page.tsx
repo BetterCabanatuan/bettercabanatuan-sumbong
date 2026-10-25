@@ -42,7 +42,7 @@ export default async function VolunteerDashboard({ searchParams }: PageProps<"/v
           const tile = (
             <Card size="sm" className="h-full transition-colors hover:bg-muted/50">
               <CardContent className="flex flex-col items-start gap-2">
-                <StatusBadge status={status} />
+                <StatusBadge status={status} labels="en" />
                 <span className="text-3xl font-bold tabular-nums">{byStatus.get(status) ?? 0}</span>
               </CardContent>
             </Card>

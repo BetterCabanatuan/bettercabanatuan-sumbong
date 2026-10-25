@@ -35,7 +35,7 @@ export default async function ReviewReportPage({ params }: PageProps<"/v/review/
     <>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="font-mono text-2xl font-bold text-navy">{report.public_code}</h1>
-        <StatusBadge status={report.status} />
+        <StatusBadge status={report.status} labels="en" />
       </div>
       {!isPending && (
         <Alert>

@@ -77,7 +77,7 @@ export default async function DigestPage({ params }: PageProps<"/v/digests/[id]"
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={r.status} />
+                  <StatusBadge status={r.status} labels="en" />
                 </TableCell>
                 <TableCell className="max-w-72 truncate">{r.title ?? categories.find((c) => c.id === r.category_id)?.name_en}</TableCell>
                 <TableCell className="text-muted-foreground">{barangays.find((b) => b.id === r.barangay_id)?.name}</TableCell>

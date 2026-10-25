@@ -1,3 +1,4 @@
+import { Mail } from "lucide-react";
 import { cookies } from "next/headers";
 import { createDigest } from "@/app/v/actions";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +64,9 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
           <CardDescription>Reports waiting per Responsible Office.</CardDescription>
         </CardHeader>
         {readyRows.length === 0 ? (
-          <p className="px-4 pb-4 text-muted-foreground">Nothing waiting.</p>
+          <p className="px-4 pb-4 text-muted-foreground">
+            Nothing waiting. A Digest takes every Published or Reopened Report for one Responsible Office.
+          </p>
         ) : (
           <Table>
             <TableBody>
@@ -123,7 +126,7 @@ export default async function DigestsPage({ searchParams }: PageProps<"/v/digest
             { key: "date", label: "Date", value: (d) => day(d.sent_at ?? d.created_at) },
             { key: "channel", label: "Sent via", value: (d) => d.channel?.replace("_", " ") ?? "—", hideInList: true },
           ]}
-          empty="No Digests yet."
+          empty={{ title: "No Digests yet", description: "The order is: draft, print the letter, send it, then log the send.", icon: Mail }}
         />
       </section>
     </>

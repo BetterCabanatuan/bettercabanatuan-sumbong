@@ -35,6 +35,11 @@
     "next": "Next",
     "submit": "Send report",
     "optional": "(optional)",
+    "emergency": {
+      "title": "Emergency?",
+      "body": "Live wires, flooding with people in danger, or fire? Don’t use this form. Call CDRRMO now.",
+      "call": "Call 0908-881-1010"
+    },
     "yes": "Yes",
     "no": "No",
     "errors": {
